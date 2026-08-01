@@ -88,29 +88,36 @@ const prepareAudioSource = async (source: AudioSource): Promise<AudioSource> => 
   };
 };
 
+const prepareOptionalAudioSource = async (
+  source: AudioSource | undefined
+): Promise<AudioSource | undefined> => (source == null ? undefined : prepareAudioSource(source));
+
 export function setupGuidedBreathingAudio(guidedBreathingMode: GuidedBreathingMode) {
   const audioGeneration = ++requestedAudioGeneration;
-  const audioSources = [
-    sounds.endingBell,
-    guidedBreathingAudioAssets[guidedBreathingMode].breatheIn,
-    guidedBreathingAudioAssets[guidedBreathingMode].breatheOut,
-    guidedBreathingAudioAssets[guidedBreathingMode].hold,
-  ].filter((source): source is AudioSource => source != null);
+  const stepAudioSources = guidedBreathingAudioAssets[guidedBreathingMode];
 
   return enqueueAudioOperation(async () => {
     await disposeCurrentAudio();
     if (audioGeneration !== requestedAudioGeneration) return;
 
     await configureAudioMode();
-    const preparedAudioSources = await Promise.all(audioSources.map(prepareAudioSource));
+    const [endingBellSource, breatheInSource, breatheOutSource, holdSource] = await Promise.all([
+      prepareAudioSource(sounds.endingBell),
+      prepareOptionalAudioSource(stepAudioSources.breatheIn),
+      prepareOptionalAudioSource(stepAudioSources.breatheOut),
+      prepareOptionalAudioSource(stepAudioSources.hold),
+    ]);
     if (audioGeneration !== requestedAudioGeneration) return;
 
-    endingBellSound = createAudioPlayer(preparedAudioSources[0]);
-    currentGuidedBreathingSounds = {
-      breatheIn: createAudioPlayer(preparedAudioSources[1]),
-      breatheOut: createAudioPlayer(preparedAudioSources[2]),
-      hold: createAudioPlayer(preparedAudioSources[3]),
-    };
+    endingBellSound = createAudioPlayer(endingBellSource);
+    // Modes without step cues (e.g. "disabled") keep only the ending bell.
+    if (breatheInSource != null && breatheOutSource != null && holdSource != null) {
+      currentGuidedBreathingSounds = {
+        breatheIn: createAudioPlayer(breatheInSource),
+        breatheOut: createAudioPlayer(breatheOutSource),
+        hold: createAudioPlayer(holdSource),
+      };
+    }
   });
 }
 
