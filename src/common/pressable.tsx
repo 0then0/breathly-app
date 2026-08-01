@@ -57,10 +57,12 @@ export const Pressable: FC<PressableProps> = ({
   };
 
   return (
+    // The wrapper handlers must stay after the props spread so a caller-supplied
+    // handler can't replace them; each one delegates to the caller's handler.
     <TouchableOpacity
       hitSlop={hitSlop}
-      onPressIn={handlePressIn}
       {...otherProps}
+      onPressIn={handlePressIn}
       onLongPress={handleLongPress}
       onPressOut={handlePressOut}
     >
