@@ -31,8 +31,28 @@ name: Customize and persist settings
     file: ../subflows/set-dark-theme.yaml
 - tapOn:
     id: "settings.vibration"
-- tapOn:
-    id: "settings.timer.increase"
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: "settings.timer.increase"
+          direction: DOWN
+      - tapOn:
+          id: "settings.timer.increase"
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: "settings.timer.slider"
+          direction: DOWN
+      - swipe:
+          from:
+            id: "settings.timer.slider"
+          direction: RIGHT
 - runFlow:
     file: ../subflows/close-settings.yaml
 - assertVisible:
@@ -52,6 +72,23 @@ name: Customize and persist settings
 - assertVisible: ".*Deep Calm \\(4-7-8-0\\).*"
 - assertVisible: ".*Disabled.*"
 - assertVisible: ".*Dark theme.*"
-- assertVisible:
-    id: "settings.timer.value"
-    text: "3"
+- scrollUntilVisible:
+    element:
+      id: "settings.timer.value"
+    direction: DOWN
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - assertVisible:
+          id: "settings.timer.value"
+          text: "3"
+# The slider drag releases near (not exactly at) the track end, so accept the
+# upper band; a persistence failure would show the default "2 min" and fail.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - assertVisible:
+          id: "settings.timer.value"
+          text: "(5[0-9]|60) min"

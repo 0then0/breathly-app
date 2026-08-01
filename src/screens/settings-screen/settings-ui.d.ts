@@ -35,6 +35,17 @@ export interface StepperItemProps extends CommonItemProps {
   onIncrease?: () => unknown;
   onDecrease?: () => unknown;
   fractionDigits?: number;
+  // When these are present, platforms with a native ranged control (Android)
+  // render a slider instead of the +/- stepper buttons.
+  onChange?: (value: number) => unknown;
+  minimumValue?: number;
+  maximumValue?: number;
+  formatValue?: (value: number) => string;
+}
+
+export interface HeaderProps {
+  title: string;
+  onBack: () => void;
 }
 
 export interface RadioButtonItemProps extends CommonItemProps {
@@ -45,6 +56,7 @@ export interface RadioButtonItemProps extends CommonItemProps {
 
 declare const SettingsUI: {
   Section: React.FC<PropsWithChildren<SectionProps>>;
+  Header: React.FC<HeaderProps>;
   LinkItem: FC<LinkItemProps>;
   PickerItem: FC<SettingsItemPicker>;
   SwitchItem: FC<SwitchItemProps>;

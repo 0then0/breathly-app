@@ -1,19 +1,38 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import setColor from "color";
-import React, { FC, PropsWithChildren, useEffect, useRef } from "react";
 import {
-  Animated,
+  AlertDialog,
+  Column,
+  FilledTonalButton,
+  Host,
+  ListItem,
+  RadioButton,
+  Row,
+  SegmentedButton,
+  SingleChoiceSegmentedButtonRow,
+  Slider,
   Switch,
   Text,
-  TouchableOpacity,
-  TouchableOpacityProps,
-  View,
-  ViewStyle,
-} from "react-native";
-import { Pressable } from "@breathly/common/pressable";
-import { colors } from "@breathly/design/colors";
-import { animate } from "@breathly/utils/animate";
+  TextButton,
+  useMaterialColors,
+} from "@expo/ui/jetpack-compose";
 import {
+  alpha,
+  clickable,
+  clip,
+  fillMaxWidth,
+  padding,
+  selectable,
+  Shapes,
+  testID as testTagModifier,
+  toggleable,
+  width as widthModifier,
+} from "@expo/ui/jetpack-compose/modifiers";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { useColorScheme } from "nativewind";
+import React, { FC, PropsWithChildren, useState } from "react";
+import { Pressable, Text as NativeText, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  HeaderProps,
   LinkItemProps,
   PickerItemProps,
   RadioButtonItemProps,
@@ -22,223 +41,448 @@ import {
   SectionProps,
 } from "./settings-ui";
 
-const Section: React.FC<PropsWithChildren<SectionProps>> = ({
-  label,
-  children,
-  hideBottomBorderAndroid,
-}) => {
-  const bottomBorderClassName = "border-b-hairline border-b-slate-300 dark:border-b-slate-500";
+type ComposeModifier = ReturnType<typeof clickable>;
+
+// Stock Android settings cards, measured on a Pixel emulator: 20dp corners on
+// the outer edges of a group, small corners between grouped neighbours, and
+// 2dp gaps.
+const outerCornerRadius = 20;
+const innerCornerRadius = 5;
+
+type GroupPosition = "single" | "first" | "middle" | "last";
+type GroupPositionProp = { groupPosition?: GroupPosition };
+
+const groupCornerRadii = (groupPosition: GroupPosition) => {
+  const top =
+    groupPosition === "single" || groupPosition === "first" ? outerCornerRadius : innerCornerRadius;
+  const bottom =
+    groupPosition === "single" || groupPosition === "last" ? outerCornerRadius : innerCornerRadius;
+  return { topStart: top, topEnd: top, bottomStart: bottom, bottomEnd: bottom };
+};
+
+// The Compose palette must follow the app theme (which the user can force away
+// from the system theme), so every Host and color lookup gets the scheme from
+// NativeWind instead of the device.
+const useSettingsColorScheme = () => {
+  const { colorScheme } = useColorScheme();
+  return colorScheme === "dark" ? ("dark" as const) : ("light" as const);
+};
+
+const useCardColor = () => {
+  const colorScheme = useSettingsColorScheme();
+  const colors = useMaterialColors({ colorScheme });
+  return colors.surfaceBright;
+};
+
+// The stock settings title bar: a tonal circular back button and a large
+// plain title, drawn by the screen itself (the native-stack header is hidden
+// on Android, see navigator.tsx). Plain React Native views: the icon comes
+// from the app's icon font, which renders crisply where a Compose text glyph
+// did not.
+const Header: FC<HeaderProps> = ({ title, onBack }) => {
+  const colorScheme = useSettingsColorScheme();
+  const colors = useMaterialColors({ colorScheme });
+  const insets = useSafeAreaInsets();
   return (
-    <View className={`pb-2 ${!hideBottomBorderAndroid && bottomBorderClassName}`}>
-      <View className="pt-4">
-        <Text className="pl-[72px] pb-2 text-xs text-blue-400">{label}</Text>
-        {children}
-      </View>
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        paddingTop: insets.top + 16,
+        paddingHorizontal: 16,
+        paddingBottom: 20,
+      }}
+    >
+      <Pressable
+        onPress={onBack}
+        testID="settings.header.back"
+        accessibilityRole="button"
+        accessibilityLabel="Back"
+        android_ripple={{ color: colors.onSurface }}
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: 24,
+          overflow: "hidden",
+          backgroundColor: colors.surfaceContainerHighest,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Ionicons name="arrow-back" size={22} color={colors.onSurface} />
+      </Pressable>
+      <NativeText style={{ marginLeft: 16, fontSize: 24, color: colors.onSurface }}>
+        {title}
+      </NativeText>
     </View>
   );
 };
 
-export interface BaseItemProps {
+const Section: React.FC<PropsWithChildren<SectionProps>> = ({ label, children }) => {
+  const colorScheme = useSettingsColorScheme();
+  const colors = useMaterialColors({ colorScheme });
+  const items = React.Children.toArray(children);
+  return (
+    <Host matchContents={{ vertical: true }} colorScheme={colorScheme}>
+      <Column
+        modifiers={[fillMaxWidth(), padding(16, 0, 16, 0)]}
+        verticalArrangement={{ spacedBy: 2 }}
+      >
+        <Text
+          color={colors.primary}
+          style={{ typography: "labelLarge" }}
+          modifiers={[padding(4, 24, 4, 8)]}
+        >
+          {label}
+        </Text>
+        {items.map((child, index) => {
+          if (!React.isValidElement(child)) return child;
+          const groupPosition: GroupPosition =
+            items.length === 1
+              ? "single"
+              : index === 0
+              ? "first"
+              : index === items.length - 1
+              ? "last"
+              : "middle";
+          return React.cloneElement(child as React.ReactElement<GroupPositionProp>, {
+            groupPosition,
+          });
+        })}
+      </Column>
+    </Host>
+  );
+};
+
+interface ItemRowProps extends GroupPositionProp {
   label?: string;
   secondaryLabel?: string;
-  style?: ViewStyle;
-  leftItem?: React.ReactNode;
-  onPress?: () => void;
-  disabled?: boolean;
   testID?: string;
-  accessibilityRole?: TouchableOpacityProps["accessibilityRole"];
-  accessibilityState?: TouchableOpacityProps["accessibilityState"];
+  modifiers?: ComposeModifier[];
+  leading?: React.ReactNode;
+  trailing?: React.ReactNode;
 }
 
-const BaseItem: FC<PropsWithChildren<BaseItemProps>> = ({
+const ItemRow: FC<ItemRowProps> = ({
   label,
   secondaryLabel,
-  onPress,
-  style,
-  leftItem,
-  disabled,
   testID,
-  accessibilityRole,
-  accessibilityState,
-  children,
+  modifiers = [],
+  leading,
+  trailing,
+  groupPosition = "single",
 }) => {
+  const cardColor = useCardColor();
   return (
-    <TouchableOpacity
-      className="flex-row justify-between py-2 pr-8"
-      style={{ paddingLeft: leftItem ? 0 : 72, opacity: disabled ? 0.5 : 1, ...style }}
-      onPress={onPress}
-      disabled={disabled || !onPress}
-      testID={testID}
-      accessibilityRole={accessibilityRole}
-      accessibilityState={accessibilityState}
+    <ListItem
+      colors={{ containerColor: cardColor }}
+      modifiers={[
+        fillMaxWidth(),
+        clip(Shapes.RoundedCorner(groupCornerRadii(groupPosition))),
+        ...(testID ? [testTagModifier(testID)] : []),
+        ...modifiers,
+      ]}
     >
-      {leftItem && <View className="w-[72px] items-center justify-center">{leftItem}</View>}
-      {label && (
-        <View className="grow-1 flex-1 shrink flex-col justify-center pr-4">
-          <Text className="text-slate-800 dark:text-white">{label}</Text>
-          {secondaryLabel && <Text className="text-sm text-slate-500">{secondaryLabel}</Text>}
-        </View>
+      {leading != null && <ListItem.LeadingContent>{leading}</ListItem.LeadingContent>}
+      {label != null && (
+        <ListItem.HeadlineContent>
+          <Text>{label}</Text>
+        </ListItem.HeadlineContent>
       )}
-      {children}
-    </TouchableOpacity>
+      {secondaryLabel != null && (
+        <ListItem.SupportingContent>
+          <Text>{secondaryLabel}</Text>
+        </ListItem.SupportingContent>
+      )}
+      {trailing != null && <ListItem.TrailingContent>{trailing}</ListItem.TrailingContent>}
+    </ListItem>
   );
 };
 
-const LinkItem: FC<LinkItemProps> = ({ value, onPress, ...baseProps }) => {
-  return <BaseItem {...baseProps} secondaryLabel={value} onPress={onPress} />;
-};
-
-interface RadioButtonProps {
-  selected?: boolean;
-  onPress?: () => unknown;
-  disabled?: boolean;
-  style?: ViewStyle;
-}
-
-const RadioButton: FC<RadioButtonProps> = ({
-  selected = false,
-  onPress = () => null,
-  disabled = false,
-}) => {
-  const animatedValue = useRef(new Animated.Value(selected ? 1 : 0)).current;
-  useEffect(() => {
-    const animation = animate(animatedValue, {
-      toValue: selected ? 1 : 0,
-      duration: 200,
-    });
-    animation.start();
-    return () => animation.stop();
-  }, [animatedValue, selected]);
-  return (
-    <TouchableOpacity
-      className="my-1 items-center justify-center rounded-full"
-      style={{
-        borderColor: disabled ? colors["stone-200"] : colors["blue-400"],
-        width: 20,
-        height: 20,
-        borderWidth: 2,
-      }}
-      onPress={disabled ? undefined : onPress}
-    >
-      <Animated.View
-        className="rounded-full"
-        style={{
-          width: 10,
-          height: 10,
-          backgroundColor: disabled ? colors["stone-200"] : colors["blue-400"],
-          transform: [{ scale: animatedValue }],
-        }}
-      />
-    </TouchableOpacity>
-  );
-};
-
-const RadioButtonItem: FC<RadioButtonItemProps> = ({
-  selected,
-  disabled,
+const LinkItem: FC<LinkItemProps & GroupPositionProp> = ({
+  label,
+  value,
   onPress,
-  ...baseProps
+  testID,
+  groupPosition,
 }) => {
   return (
-    <BaseItem
-      {...baseProps}
-      onPress={onPress}
-      disabled={disabled}
-      leftItem={<RadioButton selected={selected} disabled={disabled} onPress={onPress} />}
-      accessibilityRole="radio"
-      accessibilityState={{ checked: selected, disabled }}
+    <ItemRow
+      label={label}
+      secondaryLabel={value}
+      testID={testID}
+      groupPosition={groupPosition}
+      modifiers={[clickable(onPress)]}
     />
   );
 };
 
-const PickerItem: FC<PickerItemProps> = ({ value, options, onValueChange, ...baseProps }) => {
+const RadioButtonItem: FC<RadioButtonItemProps & GroupPositionProp> = ({
+  label,
+  secondaryLabel,
+  selected = false,
+  onPress,
+  disabled,
+  testID,
+  groupPosition,
+}) => {
+  const interactionModifiers: ComposeModifier[] = disabled
+    ? [alpha(0.5)]
+    : [selectable(selected, () => onPress?.(), "radioButton")];
+  return (
+    <ItemRow
+      label={label}
+      secondaryLabel={secondaryLabel}
+      testID={testID}
+      groupPosition={groupPosition}
+      modifiers={interactionModifiers}
+      leading={<RadioButton selected={selected} onClick={disabled ? undefined : onPress} />}
+    />
+  );
+};
+
+// Single-choice settings follow the Android "list preference" pattern: a row
+// with the current value that opens a radio dialog. Selecting applies and
+// closes; Cancel keeps the current value.
+const PickerItem: FC<PickerItemProps & GroupPositionProp> = ({
+  label,
+  value,
+  options,
+  onValueChange,
+  testID,
+  groupPosition,
+}) => {
+  const [dialogVisible, setDialogVisible] = useState(false);
+  const cardColor = useCardColor();
+  const selectedOption = options.find((option) => option.value === value);
+  const closeDialog = () => setDialogVisible(false);
+  const selectOption = (optionValue: string) => {
+    onValueChange(optionValue);
+    closeDialog();
+  };
+  // Material 3: segmented buttons for small exclusive sets; the dialog-based
+  // "list preference" pattern for longer ones.
+  if (options.length <= 3) {
+    return (
+      <ListItem
+        colors={{ containerColor: cardColor }}
+        modifiers={[
+          fillMaxWidth(),
+          clip(Shapes.RoundedCorner(groupCornerRadii(groupPosition ?? "single"))),
+          ...(testID ? [testTagModifier(testID)] : []),
+        ]}
+      >
+        <ListItem.HeadlineContent>
+          <Text>{label}</Text>
+        </ListItem.HeadlineContent>
+        <ListItem.SupportingContent>
+          <SingleChoiceSegmentedButtonRow modifiers={[fillMaxWidth(), padding(0, 8, 0, 4)]}>
+            {options.map((option) => (
+              <SegmentedButton
+                key={option.value}
+                selected={option.value === value}
+                onClick={() => onValueChange(option.value)}
+                modifiers={
+                  testID ? [testTagModifier(`${testID}.option.${option.value}`)] : []
+                }
+              >
+                <SegmentedButton.Label>
+                  <Text maxLines={1}>{option.label}</Text>
+                </SegmentedButton.Label>
+              </SegmentedButton>
+            ))}
+          </SingleChoiceSegmentedButtonRow>
+        </ListItem.SupportingContent>
+      </ListItem>
+    );
+  }
   return (
     <>
-      {options.map((option) => (
-        <RadioButtonItem
-          {...baseProps}
-          onPress={() => onValueChange(option.value)}
-          key={option.value}
-          testID={baseProps.testID ? `${baseProps.testID}.option.${option.value}` : undefined}
-          label={option.label}
-          selected={option.value === value}
-        />
-      ))}
+      <ItemRow
+        label={label}
+        secondaryLabel={selectedOption?.label ?? value}
+        testID={testID}
+        groupPosition={groupPosition}
+        modifiers={[clickable(() => setDialogVisible(true))]}
+      />
+      {dialogVisible && (
+        <AlertDialog onDismissRequest={closeDialog}>
+          <AlertDialog.Title>
+            <Text>{label ?? ""}</Text>
+          </AlertDialog.Title>
+          <AlertDialog.Text>
+            <Column modifiers={[fillMaxWidth()]}>
+              {options.map((option) => (
+                <Row
+                  key={option.value}
+                  verticalAlignment="center"
+                  modifiers={[
+                    fillMaxWidth(),
+                    selectable(option.value === value, () => selectOption(option.value), "radioButton"),
+                    ...(testID ? [testTagModifier(`${testID}.option.${option.value}`)] : []),
+                    padding(0, 12, 0, 12),
+                  ]}
+                >
+                  <RadioButton
+                    selected={option.value === value}
+                    onClick={() => selectOption(option.value)}
+                  />
+                  <Text modifiers={[padding(8, 0, 0, 0)]}>{option.label}</Text>
+                </Row>
+              ))}
+            </Column>
+          </AlertDialog.Text>
+          <AlertDialog.DismissButton>
+            <TextButton onClick={closeDialog}>
+              <Text>Cancel</Text>
+            </TextButton>
+          </AlertDialog.DismissButton>
+        </AlertDialog>
+      )}
     </>
   );
 };
 
-const SwitchItem: FC<SwitchItemProps> = ({ value, onValueChange, testID, ...baseProps }) => {
+const SwitchItem: FC<SwitchItemProps & GroupPositionProp> = ({
+  label,
+  secondaryLabel,
+  value,
+  onValueChange,
+  testID,
+  groupPosition,
+}) => {
   return (
-    <BaseItem {...baseProps}>
-      <Switch
-        value={value}
-        testID={testID}
-        accessibilityLabel={baseProps.label}
-        style={{ marginRight: -12 }}
-        onValueChange={onValueChange}
-        thumbColor={value ? colors["blue-400"] : colors["stone-200"]}
-        trackColor={{
-          true: setColor(colors["blue-400"]).alpha(0.5).rgb().string(),
-          false: colors["stone-300"],
-        }}
-      />
-    </BaseItem>
+    <ItemRow
+      label={label}
+      secondaryLabel={secondaryLabel}
+      testID={testID}
+      groupPosition={groupPosition}
+      modifiers={[toggleable(value, () => onValueChange?.(!value))]}
+      trailing={<Switch value={value} onCheckedChange={onValueChange} />}
+    />
   );
 };
 
-const StepperItem: FC<StepperItemProps> = ({
+const formatStepperValue = (value: number | string | undefined, fractionDigits: number) =>
+  typeof value === "number" && fractionDigits > 0 ? value.toFixed(fractionDigits) : `${value}`;
+
+// Native ranged control following stock Android settings (font size, volume):
+// a continuous slider whose committed value snaps to whole units. The store
+// update happens on release so a drag doesn't spam the persisted state.
+const SliderItem: FC<StepperItemProps & GroupPositionProp> = ({
+  label,
+  value,
+  onChange,
+  minimumValue = 0,
+  maximumValue = 1,
+  formatValue,
+  testID,
+  groupPosition,
+}) => {
+  const cardColor = useCardColor();
+  const colorScheme = useSettingsColorScheme();
+  const colors = useMaterialColors({ colorScheme });
+  const [dragValue, setDragValue] = useState<number | null>(null);
+  const committedValue = typeof value === "number" ? value : minimumValue;
+  const shownValue = dragValue ?? committedValue;
+  const roundedValue = Math.round(shownValue);
+  const valueLabel = formatValue ? formatValue(roundedValue) : `${roundedValue}`;
+  return (
+    <ListItem
+      colors={{ containerColor: cardColor }}
+      modifiers={[
+        fillMaxWidth(),
+        clip(Shapes.RoundedCorner(groupCornerRadii(groupPosition ?? "single"))),
+        ...(testID ? [testTagModifier(testID)] : []),
+      ]}
+    >
+      <ListItem.HeadlineContent>
+        <Text>{label}</Text>
+      </ListItem.HeadlineContent>
+      <ListItem.SupportingContent>
+        <Column modifiers={[fillMaxWidth()]}>
+          <Text
+            color={colors.onSurfaceVariant}
+            modifiers={testID ? [testTagModifier(`${testID}.value`)] : []}
+          >
+            {valueLabel}
+          </Text>
+          <Slider
+            value={shownValue}
+            min={minimumValue}
+            max={maximumValue}
+            onValueChange={setDragValue}
+            onValueChangeFinished={() => {
+              onChange?.(Math.round(dragValue ?? committedValue));
+              setDragValue(null);
+            }}
+            modifiers={[fillMaxWidth(), ...(testID ? [testTagModifier(`${testID}.slider`)] : [])]}
+          />
+        </Column>
+      </ListItem.SupportingContent>
+    </ListItem>
+  );
+};
+
+const StepperItem: FC<StepperItemProps & GroupPositionProp> = (props) => {
+  if (props.onChange != null && props.maximumValue != null) {
+    return <SliderItem {...props} />;
+  }
+  return <StepperButtonsItem {...props} />;
+};
+
+const StepperButtonsItem: FC<StepperItemProps & GroupPositionProp> = ({
+  label,
+  secondaryLabel,
   value,
   increaseDisabled,
   decreaseDisabled,
   onIncrease,
   onDecrease,
   fractionDigits = 0,
-  ...baseProps
+  testID,
+  groupPosition,
 }) => {
   return (
-    <BaseItem {...baseProps}>
-      <View className="flex-row items-center">
-        <Pressable
-          className="items-center justify-center rounded-md bg-blue-400 px-2 py-1"
-          style={{ opacity: decreaseDisabled ? 0.4 : 1 }}
-          onPress={onDecrease}
-          onLongPressInterval={onDecrease}
-          disabled={decreaseDisabled}
-          testID={baseProps.testID ? `${baseProps.testID}.decrease` : undefined}
-          accessibilityLabel={`Decrease ${baseProps.label ?? "value"}`}
-        >
-          <MaterialCommunityIcons name="minus" size={16} color="white" />
-        </Pressable>
-        <View className={`${fractionDigits > 0 ? "w-14" : "w-8"} self-center px-2`}>
-          <Text
-            className="text-center font-breathly-mono font-semibold dark:text-white"
-            numberOfLines={1}
-            testID={baseProps.testID ? `${baseProps.testID}.value` : undefined}
+    <ItemRow
+      label={label}
+      secondaryLabel={secondaryLabel}
+      testID={testID}
+      groupPosition={groupPosition}
+      trailing={
+        <Row horizontalArrangement={{ spacedBy: 4 }} verticalAlignment="center">
+          <FilledTonalButton
+            enabled={!decreaseDisabled}
+            onClick={onDecrease}
+            modifiers={testID ? [testTagModifier(`${testID}.decrease`)] : []}
           >
-            {typeof value === "number" && fractionDigits > 0
-              ? value.toFixed(fractionDigits)
-              : value}
+            <Text>−</Text>
+          </FilledTonalButton>
+          <Text
+            style={{ textAlign: "center" }}
+            modifiers={[
+              widthModifier(fractionDigits > 0 ? 44 : 32),
+              ...(testID ? [testTagModifier(`${testID}.value`)] : []),
+            ]}
+          >
+            {formatStepperValue(value, fractionDigits)}
           </Text>
-        </View>
-        <Pressable
-          className="items-center justify-center rounded-md bg-blue-400 px-2 py-1"
-          style={{ opacity: increaseDisabled ? 0.4 : 1 }}
-          onPress={onIncrease}
-          onLongPressInterval={onIncrease}
-          disabled={increaseDisabled}
-          testID={baseProps.testID ? `${baseProps.testID}.increase` : undefined}
-          accessibilityLabel={`Increase ${baseProps.label ?? "value"}`}
-        >
-          <MaterialCommunityIcons name="plus" size={16} color="white" />
-        </Pressable>
-      </View>
-    </BaseItem>
+          <FilledTonalButton
+            enabled={!increaseDisabled}
+            onClick={onIncrease}
+            modifiers={testID ? [testTagModifier(`${testID}.increase`)] : []}
+          >
+            <Text>+</Text>
+          </FilledTonalButton>
+        </Row>
+      }
+    />
   );
 };
 
 export const SettingsUI = {
   Section,
+  Header,
   LinkItem,
   PickerItem,
   SwitchItem,

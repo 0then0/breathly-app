@@ -1,5 +1,6 @@
 import {
   adjustTimeLimit,
+  clampTimeLimit,
   customPatternDurationLimits,
   defaultSettingsState,
   maximumTimeLimitMs,
@@ -71,6 +72,12 @@ describe("settings state", () => {
   it("clamps every time-limit adjustment inside the supported range", () => {
     expect(adjustTimeLimit(0, -60_000)).toBe(0);
     expect(adjustTimeLimit(maximumTimeLimitMs, 60_000)).toBe(maximumTimeLimitMs);
+  });
+
+  it("clamps absolute time-limit values inside the supported range", () => {
+    expect(clampTimeLimit(-60_000)).toBe(0);
+    expect(clampTimeLimit(maximumTimeLimitMs + 1)).toBe(maximumTimeLimitMs);
+    expect(clampTimeLimit(Number.NaN)).toBe(defaultSettingsState.timeLimit);
   });
 
   it("clamps custom steps and ignores invalid indexes", () => {
