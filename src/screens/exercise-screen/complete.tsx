@@ -3,6 +3,10 @@ import { Animated, StyleSheet, Text } from "react-native";
 import { colors } from "@breathly/design/colors";
 import { useColorScheme } from "@breathly/design/theme";
 import { fontFamilies, fontSizes } from "@breathly/design/typography";
+import {
+  announceForScreenReader,
+  sessionCompleteAnnouncement,
+} from "@breathly/screens/exercise-screen/accessibility-announcements";
 import { animate } from "@breathly/utils/animate";
 import { interpolateTranslateY } from "@breathly/utils/interpolate";
 
@@ -20,6 +24,12 @@ export const ExerciseComplete: FC = () => {
     mountAnimation.start();
     return () => mountAnimation.stop();
   }, [mountAnimVal]);
+
+  // The screen does not change: a screen reader reads nothing on its own when
+  // the exercise ends.
+  useEffect(() => {
+    announceForScreenReader(sessionCompleteAnnouncement);
+  }, []);
 
   const containerAnimatedStyle = {
     opacity: mountAnimVal.interpolate({

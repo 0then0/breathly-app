@@ -3,6 +3,11 @@ import { Animated, StyleSheet, Text } from "react-native";
 import { colors } from "@breathly/design/colors";
 import { useColorScheme, useThemeColors } from "@breathly/design/theme";
 import { fontFamilies, fontSizes } from "@breathly/design/typography";
+import {
+  announceLiveRegionUpdate,
+  getInterludeAccessibilityLabel,
+} from "@breathly/screens/exercise-screen/accessibility-announcements";
+import { useReduceMotion } from "@breathly/screens/exercise-screen/use-accessibility-preferences";
 import { animate } from "@breathly/utils/animate";
 import { delay } from "@breathly/utils/delay";
 import { interpolateTranslateY } from "@breathly/utils/interpolate";
@@ -14,14 +19,21 @@ interface Props {
 
 const interludeInitialDelay = 600;
 const interludeAnimDuration = 400;
+const interludeInitialStep = 3;
 
 export const ExerciseInterlude: FC<Props> = ({ onComplete }) => {
   const isDarkMode = useColorScheme() === "dark";
   const theme = useThemeColors();
+  const reduceMotionEnabled = useReduceMotion();
   const isMountedRef = useRef(true);
   const containerAnimVal = useRef(new Animated.Value(1)).current;
   const subtitleAnimVal = useRef(new Animated.Value(0)).current;
-  const [step, setStep] = useState(3);
+  const [step, setStep] = useState(interludeInitialStep);
+
+  const goToStep = (nextStep: number) => {
+    setStep(nextStep);
+    announceLiveRegionUpdate(getInterludeAccessibilityLabel(nextStep));
+  };
 
   const showSubtitleAnimation = animate(subtitleAnimVal, {
     toValue: 1,
@@ -36,10 +48,10 @@ export const ExerciseInterlude: FC<Props> = ({ onComplete }) => {
   const countDownAndHide = async () => {
     await delay(1000);
     if (!isMountedRef.current) return;
-    setStep(2);
+    goToStep(2);
     await delay(1000);
     if (!isMountedRef.current) return;
-    setStep(1);
+    goToStep(1);
     await delay(1000);
     if (!isMountedRef.current) return;
     hideContainerAnimation.start((done) => done && onComplete());
@@ -49,6 +61,7 @@ export const ExerciseInterlude: FC<Props> = ({ onComplete }) => {
     await delay(interludeInitialDelay);
     showSubtitleAnimation.start(({ finished }) => {
       if (!finished) return;
+      announceLiveRegionUpdate(getInterludeAccessibilityLabel(interludeInitialStep));
       void countDownAndHide();
     });
   };
@@ -62,29 +75,34 @@ export const ExerciseInterlude: FC<Props> = ({ onComplete }) => {
     };
   });
 
+  // The countdown only fades when the user asked the system for less motion.
   const containerAnimatedStyle = {
     opacity: containerAnimVal.interpolate({
       inputRange: [0, 1],
       outputRange: [0, 1],
     }),
-    transform: [
-      interpolateTranslateY(containerAnimVal, {
-        inputRange: [0, 1],
-        outputRange: [0, 8],
-      }),
-    ],
+    transform: reduceMotionEnabled
+      ? []
+      : [
+          interpolateTranslateY(containerAnimVal, {
+            inputRange: [0, 1],
+            outputRange: [0, 8],
+          }),
+        ],
   };
   const subtitleAnimatedStyle = {
     opacity: subtitleAnimVal.interpolate({
       inputRange: [0, 1],
       outputRange: [0, 1],
     }),
-    transform: [
-      interpolateTranslateY(subtitleAnimVal, {
-        inputRange: [0, 1],
-        outputRange: [0, -8],
-      }),
-    ],
+    transform: reduceMotionEnabled
+      ? []
+      : [
+          interpolateTranslateY(subtitleAnimVal, {
+            inputRange: [0, 1],
+            outputRange: [0, -8],
+          }),
+        ],
   };
 
   return (
@@ -93,6 +111,10 @@ export const ExerciseInterlude: FC<Props> = ({ onComplete }) => {
       <Animated.View style={subtitleAnimatedStyle}>
         <Text
           style={[styles.subtitle, { color: theme.textSecondary }]}
+          // Android reads the countdown from the live region. iOS has no live
+          // regions: the countdown announces itself there.
+          accessibilityLiveRegion="polite"
+          accessibilityLabel={getInterludeAccessibilityLabel(step)}
         >{`Starting session in \n${step}`}</Text>
       </Animated.View>
     </Animated.View>

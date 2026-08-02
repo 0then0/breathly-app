@@ -10,6 +10,10 @@ import { colors } from "@breathly/design/colors";
 import { widestDeviceDimension } from "@breathly/design/metrics";
 import { useColorScheme, useThemeColors } from "@breathly/design/theme";
 import { fontFamilies, fontSizes } from "@breathly/design/typography";
+import {
+  announceLiveRegionUpdate,
+  getStepAccessibilityLabel,
+} from "@breathly/screens/exercise-screen/accessibility-announcements";
 import { AnimatedDots } from "@breathly/screens/exercise-screen/animated-dots";
 import {
   createExerciseSession,
@@ -18,11 +22,13 @@ import {
   type ResumableExerciseStatus,
 } from "@breathly/screens/exercise-screen/exercise-session";
 import { StepDescription } from "@breathly/screens/exercise-screen/step-description";
+import { useScreenReaderEnabled } from "@breathly/screens/exercise-screen/use-accessibility-preferences";
 import { useExerciseAudio } from "@breathly/screens/exercise-screen/use-exercise-audio";
 import { useExerciseHaptics } from "@breathly/screens/exercise-screen/use-exercise-haptics";
 import { useExerciseLoop } from "@breathly/screens/exercise-screen/use-exercise-loop";
 import { StarsBackground } from "@breathly/screens/home-screen/stars-background";
 import { useSelectedPatternSteps, useSettingsStore } from "@breathly/stores/settings";
+import { GuidedBreathingMode } from "@breathly/types/guided-breathing-mode";
 import { StepMetadata } from "@breathly/types/step-metadata";
 import { animate } from "@breathly/utils/animate";
 import { buildStepsMetadata } from "@breathly/utils/build-steps-metadata";
@@ -32,10 +38,23 @@ import { ExerciseComplete } from "./complete";
 import { ExerciseInterlude } from "./interlude";
 import { Timer } from "./timer";
 
+// The voice that the exercise uses for a user of a screen reader who disabled
+// it. It is the default voice of the app.
+const screenReaderFallbackVoice: GuidedBreathingMode = "paul";
+
 export const ExerciseScreen: FC<NativeStackScreenProps<RootStackParamList, "Exercise">> = ({
   navigation,
 }) => {
   const { guidedBreathingVoice } = useSettingsStore();
+  const screenReaderEnabled = useScreenReaderEnabled();
+  // A user of a screen reader who disabled the voice has no channel that works
+  // without sight, because the visuals carry the whole exercise. The voice
+  // therefore starts, but the app does not write the setting: the user keeps
+  // the choice made in the settings screen.
+  const effectiveGuidedBreathingVoice =
+    screenReaderEnabled && guidedBreathingVoice === "disabled"
+      ? screenReaderFallbackVoice
+      : guidedBreathingVoice;
   const [session, dispatchSession] = useReducer(
     exerciseSessionReducer,
     undefined,
@@ -46,12 +65,22 @@ export const ExerciseScreen: FC<NativeStackScreenProps<RootStackParamList, "Exer
   const colorScheme = useColorScheme();
   const theme = useThemeColors();
 
-  const { playExerciseStepAudio, playExerciseCompletedAudio, stopExerciseAudio } =
-    useExerciseAudio(guidedBreathingVoice);
+  // The countdown, the paused screen and the completion screen need the screen
+  // awake as much as the exercise does: a screen that locks during the countdown
+  // pauses the session before it starts.
+  useKeepAwake();
+
+  const { playExerciseStepAudio, playExerciseCompletedAudio, stopExerciseAudio } = useExerciseAudio(
+    effectiveGuidedBreathingVoice,
+  );
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
-      if (nextAppState !== "active") {
+      // iOS reports "inactive" for the Control Center, the Notification Center,
+      // the app switcher and the banner of an incoming call. The app stays on
+      // the screen and the user comes back to a live session, thus only a real
+      // background interrupts the exercise.
+      if (nextAppState === "background") {
         stopExerciseAudio();
         dispatchSession({ type: "pause", activeElapsedMs: activeElapsedMs.current });
       }
@@ -170,8 +199,6 @@ const ExerciseRunningFragment: FC<ExerciseRunningFragmentProps> = ({
     onStepIndexChange,
   );
 
-  useKeepAwake();
-
   const playStepHaptic = useExerciseHaptics(vibrationEnabled);
 
   // The time limit does not stop the exercise on its own: it only arms the
@@ -209,6 +236,9 @@ const ExerciseRunningFragment: FC<ExerciseRunningFragmentProps> = ({
       } else if (transition === "startStep") {
         onStepChange(currentStep);
         playStepHaptic();
+        announceLiveRegionUpdate(
+          getStepAccessibilityLabel(currentStep.label, currentStep.duration),
+        );
       }
     },
     currentStep,
@@ -234,7 +264,11 @@ const ExerciseRunningFragment: FC<ExerciseRunningFragmentProps> = ({
       {currentStep && (
         <View style={styles.stepContent}>
           <BreathingAnimation animationValue={exerciseAnimVal} />
-          <StepDescription label={currentStep.label} animationValue={textAnimVal} />
+          <StepDescription
+            label={currentStep.label}
+            durationMs={currentStep.duration}
+            animationValue={textAnimVal}
+          />
           <AnimatedDots
             numberOfDots={3}
             totalDuration={currentStep.duration}
@@ -260,7 +294,7 @@ const ExercisePaused: FC<ExercisePausedProps> = ({ resumeStatus, onResume }) => 
       <Text style={[styles.pausedDescription, { color: theme.textSecondary }]}>
         {resumeStatus === "interlude"
           ? "The starting countdown was interrupted."
-          : "Your session stopped while Breathly was in the background."}
+          : "The session paused while Breathly was in the background."}
       </Text>
       <Pressable
         accessibilityRole="button"

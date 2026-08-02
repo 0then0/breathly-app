@@ -4,6 +4,7 @@ import { Animated, StyleSheet, View } from "react-native";
 import { colors } from "@breathly/design/colors";
 import { shortestDeviceDimension } from "@breathly/design/metrics";
 import { useColorScheme } from "@breathly/design/theme";
+import { useReduceMotion } from "@breathly/screens/exercise-screen/use-accessibility-preferences";
 import { animate } from "@breathly/utils/animate";
 import { times } from "@breathly/utils/times";
 
@@ -17,6 +18,7 @@ interface Props {
 
 export const BreathingAnimation: FC<Props> = ({ animationValue, color = colors.pastel.orange }) => {
   const colorScheme = useColorScheme();
+  const reduceMotionEnabled = useReduceMotion();
   const mountAnimationValue = useRef(new Animated.Value(0)).current;
   const innerOpacity = animationValue.interpolate({
     inputRange: [0, 0.1, 1],
@@ -34,6 +36,23 @@ export const BreathingAnimation: FC<Props> = ({ animationValue, color = colors.p
     animation.start();
     return () => animation.stop();
   }, [mountAnimationValue]);
+
+  if (reduceMotionEnabled) {
+    return (
+      <Animated.View
+        style={{
+          minWidth: shortestDeviceDimension,
+          minHeight: shortestDeviceDimension,
+          opacity: mountAnimationValue,
+        }}
+      >
+        <SteadyCircle
+          animationValue={animationValue}
+          color={colorScheme === "dark" ? setColor(color).lighten(0.2).rgb().string() : color}
+        />
+      </Animated.View>
+    );
+  }
 
   return (
     <Animated.View
@@ -93,6 +112,41 @@ export const BreathingAnimation: FC<Props> = ({ animationValue, color = colors.p
         ))}
       </View>
     </Animated.View>
+  );
+};
+
+interface SteadyCircleProps {
+  animationValue: Animated.Value;
+  color: string;
+}
+
+// The variant of the animation for a user who asked the system for less motion:
+// one circle in the centre of the screen that changes only its opacity and its
+// size. Nothing rotates and nothing travels. The timing stays the same, thus the
+// circle still shows the rhythm of the breath.
+const SteadyCircle: FC<SteadyCircleProps> = ({ animationValue, color }) => {
+  const opacity = animationValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.35, 0.6],
+  });
+  const scale = animationValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.9, 1.05],
+  });
+
+  return (
+    <View style={styles.innerCircleLayer}>
+      <Animated.View
+        style={{
+          width: circleWidth,
+          height: circleWidth,
+          borderRadius: circleWidth / 2,
+          backgroundColor: color,
+          opacity,
+          transform: [{ scale }],
+        }}
+      />
+    </View>
   );
 };
 

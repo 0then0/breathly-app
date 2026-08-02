@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Animated } from "react-native";
+import { createStepAnimation } from "@breathly/screens/exercise-screen/step-animation";
 import { StepMetadata } from "@breathly/types/step-metadata";
-import { animate } from "@breathly/utils/animate";
 import { loopAnimations } from "@breathly/utils/loop-animations";
-
-const textAnimDuration = 400;
 
 export const useExerciseLoop = (
   stepsMetadata: [StepMetadata, StepMetadata, StepMetadata, StepMetadata],
@@ -27,24 +25,8 @@ export const useExerciseLoop = (
   const currentStep: StepMetadata | undefined = activeSteps[currentStepIndex];
 
   const animateStep = useCallback(
-    (toValue: number, duration: number) => {
-      return Animated.stagger(duration - textAnimDuration, [
-        Animated.parallel([
-          animate(exerciseAnimVal, {
-            toValue: toValue,
-            duration: duration,
-          }),
-          animate(textAnimVal, {
-            toValue: 1,
-            duration: textAnimDuration,
-          }),
-        ]),
-        animate(textAnimVal, {
-          toValue: 0,
-          duration: textAnimDuration,
-        }),
-      ]);
-    },
+    (toValue: number, durationMs: number) =>
+      createStepAnimation({ exerciseAnimVal, textAnimVal, toValue, durationMs }),
     [exerciseAnimVal, textAnimVal],
   );
 
