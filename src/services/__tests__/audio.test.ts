@@ -116,6 +116,22 @@ describe("guided breathing audio", () => {
     expect(mockPlayers[1].play).toHaveBeenCalledTimes(1);
   });
 
+  it("gives the bell mode a different sound for the inhale and the exhale", async () => {
+    await setupGuidedBreathingAudio("bell");
+
+    // Player order follows the setup: ending bell, inhale, exhale, hold.
+    const [, breatheIn, breatheOut, hold] = mockPlayers;
+
+    // The bell mode is used with the eyes closed, so the two directions must not
+    // sound the same.
+    expect(breatheIn.source).not.toEqual(breatheOut.source);
+    expect(breatheIn.source).toEqual({ assetId: 8, uri: "file:///audio/8.mp3" });
+    expect(breatheOut.source).toEqual({ assetId: 9, uri: "file:///audio/9.mp3" });
+    // Patterns without a hold step must still reach both bells, so the hold reuses
+    // the inhale bell rather than owning a third sound.
+    expect(hold.source).toEqual(breatheIn.source);
+  });
+
   it("creates only the ending bell player for the disabled mode", async () => {
     await setupGuidedBreathingAudio("disabled");
 
