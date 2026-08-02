@@ -3,6 +3,7 @@ import React, { FC, useEffect, useRef } from "react";
 import { Animated, Easing, Image, StyleSheet, ViewStyle } from "react-native";
 import { images } from "@breathly/assets/images";
 import { widestDeviceDimension } from "@breathly/design/metrics";
+import { useReduceMotion } from "@breathly/utils/use-accessibility-preferences";
 
 const BACKGROUND_ANIM_DURATION = ms("2 min");
 
@@ -26,10 +27,14 @@ export const StarsBackground: FC<Props> = ({
   onImageLoaded,
   size = widestDeviceDimension * 0.6,
 }) => {
+  const reduceMotionEnabled = useReduceMotion();
   const backgroundAnimValue = useRef(new Animated.Value(0)).current;
   const fadeInAnimValue = useRef(new Animated.Value(fadeIn ? 0 : 1)).current;
 
   useEffect(() => {
+    // Hold the sky still when the user asks the system for less motion.
+    if (reduceMotionEnabled) return;
+
     const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(backgroundAnimValue, {
@@ -52,7 +57,7 @@ export const StarsBackground: FC<Props> = ({
     return () => {
       animation.stop();
     };
-  }, [backgroundAnimValue]);
+  }, [backgroundAnimValue, reduceMotionEnabled]);
 
   const backgroundTransform = [
     {

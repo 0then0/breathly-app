@@ -4,9 +4,9 @@ import { Animated, StyleSheet, View } from "react-native";
 import { colors } from "@breathly/design/colors";
 import { shortestDeviceDimension } from "@breathly/design/metrics";
 import { useColorScheme } from "@breathly/design/theme";
-import { useReduceMotion } from "@breathly/screens/exercise-screen/use-accessibility-preferences";
 import { animate } from "@breathly/utils/animate";
 import { times } from "@breathly/utils/times";
+import { useReduceMotion } from "@breathly/utils/use-accessibility-preferences";
 
 const circleWidth = shortestDeviceDimension / 2;
 const MOUNT_ANIMATION_DURATION = 300;

@@ -2,10 +2,10 @@ import React, { FC, useEffect, useMemo } from "react";
 import { Animated, StyleSheet } from "react-native";
 import { colors } from "@breathly/design/colors";
 import { useColorScheme } from "@breathly/design/theme";
-import { useReduceMotion } from "@breathly/screens/exercise-screen/use-accessibility-preferences";
 import { animate } from "@breathly/utils/animate";
 import { interpolateScale } from "@breathly/utils/interpolate";
 import { times } from "@breathly/utils/times";
+import { useReduceMotion } from "@breathly/utils/use-accessibility-preferences";
 
 const dotSize = Math.floor(4);
 const fadeInAnimDuration = 400;

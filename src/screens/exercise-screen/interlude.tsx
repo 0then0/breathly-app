@@ -7,10 +7,10 @@ import {
   announceLiveRegionUpdate,
   getInterludeAccessibilityLabel,
 } from "@breathly/screens/exercise-screen/accessibility-announcements";
-import { useReduceMotion } from "@breathly/screens/exercise-screen/use-accessibility-preferences";
 import { animate } from "@breathly/utils/animate";
 import { delay } from "@breathly/utils/delay";
 import { interpolateTranslateY } from "@breathly/utils/interpolate";
+import { useReduceMotion } from "@breathly/utils/use-accessibility-preferences";
 import { useOnMount } from "@breathly/utils/use-on-mount";
 
 interface Props {

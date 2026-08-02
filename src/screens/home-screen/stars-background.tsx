@@ -6,6 +6,7 @@ import { Animated, Easing, Image, StyleSheet } from "react-native";
 import { images } from "@breathly/assets/images";
 import { widestDeviceDimension } from "@breathly/design/metrics";
 import { animate } from "@breathly/utils/animate";
+import { useReduceMotion } from "@breathly/utils/use-accessibility-preferences";
 
 const BACKGROUND_ANIM_DURATION = ms("2 min");
 
@@ -20,10 +21,16 @@ export const StarsBackground: FC<Props> = ({
   onImageLoaded,
   size = widestDeviceDimension * 0.6,
 }) => {
+  const reduceMotionEnabled = useReduceMotion();
   const backgroundAnimValue = useRef(new Animated.Value(0)).current;
   const fadeInAnimValue = useRef(new Animated.Value(fadeIn ? 0 : 1)).current;
 
   useEffect(() => {
+    // The sky drifts for as long as it is on screen, which makes it the one piece of
+    // continuous motion left when the user asks the system for less of it. Hold it still;
+    // the star field itself is the point, not the drift.
+    if (reduceMotionEnabled) return;
+
     const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(backgroundAnimValue, {
@@ -42,7 +49,7 @@ export const StarsBackground: FC<Props> = ({
     );
     animation.start();
     return () => animation.stop();
-  }, [backgroundAnimValue]);
+  }, [backgroundAnimValue, reduceMotionEnabled]);
 
   const backgroundTransform = [
     {

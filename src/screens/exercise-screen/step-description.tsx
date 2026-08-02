@@ -4,8 +4,8 @@ import { colors } from "@breathly/design/colors";
 import { useColorScheme } from "@breathly/design/theme";
 import { fontFamilies, fontSizes } from "@breathly/design/typography";
 import { getStepAccessibilityLabel } from "@breathly/screens/exercise-screen/accessibility-announcements";
-import { useReduceMotion } from "@breathly/screens/exercise-screen/use-accessibility-preferences";
 import { interpolateTranslateY } from "@breathly/utils/interpolate";
+import { useReduceMotion } from "@breathly/utils/use-accessibility-preferences";
 
 interface Props {
   label: string;

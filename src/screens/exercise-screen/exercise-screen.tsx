@@ -22,7 +22,6 @@ import {
   type ResumableExerciseStatus,
 } from "@breathly/screens/exercise-screen/exercise-session";
 import { StepDescription } from "@breathly/screens/exercise-screen/step-description";
-import { useScreenReaderEnabled } from "@breathly/screens/exercise-screen/use-accessibility-preferences";
 import { useExerciseAudio } from "@breathly/screens/exercise-screen/use-exercise-audio";
 import { useExerciseHaptics } from "@breathly/screens/exercise-screen/use-exercise-haptics";
 import { useExerciseLoop } from "@breathly/screens/exercise-screen/use-exercise-loop";
@@ -32,6 +31,7 @@ import { GuidedBreathingMode } from "@breathly/types/guided-breathing-mode";
 import { StepMetadata } from "@breathly/types/step-metadata";
 import { animate } from "@breathly/utils/animate";
 import { buildStepsMetadata } from "@breathly/utils/build-steps-metadata";
+import { useScreenReaderEnabled } from "@breathly/utils/use-accessibility-preferences";
 import { useOnUpdate } from "@breathly/utils/use-on-update";
 import { BreathingAnimation } from "./breathing-animation";
 import { ExerciseComplete } from "./complete";
