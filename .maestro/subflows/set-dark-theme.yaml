@@ -1,5 +1,6 @@
 appId: com.mmazzarolo.breathly
 ---
+# On Android the theme choice is an inline segmented button row.
 - runFlow:
     when:
       platform: Android

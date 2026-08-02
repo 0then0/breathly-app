@@ -11,6 +11,7 @@ import {
   SettingsRootScreen,
   SettingsPatternPickerScreen,
 } from "@breathly/screens/settings-screen/settings-screen";
+import { useNativeSettingsTheme } from "@breathly/screens/settings-screen/settings-theme";
 
 export type RootStackParamList = {
   Home: undefined;
@@ -30,6 +31,9 @@ export const Navigator: FC = () => {
   const { colorScheme } = useNativeWindColorScheme();
   const baseTheme = colorScheme === "dark" ? DarkTheme : DefaultTheme;
   const backgroundColor = colorScheme === "dark" ? colors["slate-900"] : colors["stone-100"];
+  // On Android the settings stack matches the stock settings app: window and
+  // top bar use the Material window tone instead of the app background.
+  const nativeSettingsTheme = useNativeSettingsTheme(colorScheme === "dark" ? "dark" : "light");
   const theme = {
     ...baseTheme,
     dark: colorScheme === "dark",
@@ -70,13 +74,28 @@ export const Navigator: FC = () => {
             }}
           >
             {() => {
+              const settingsBackgroundColor =
+                nativeSettingsTheme?.background ??
+                (colorScheme === "dark" ? colors["slate-900"] : colors["stone-100"]);
               const commonHeaderSettings = {
+                // Android draws its own stock-style title bar inside the screen
+                // (SettingsUI.Header); the native-stack header stays hidden there.
+                headerShown: Platform.OS !== "android",
                 headerShadowVisible: Platform.OS === "ios",
                 headerStyle: {
-                  backgroundColor:
-                    colorScheme === "dark" ? colors["slate-900"] : colors["stone-100"],
+                  backgroundColor: settingsBackgroundColor,
                 },
-                headerTintColor: Platform.OS === "ios" ? undefined : colors["blue-400"],
+                contentStyle: {
+                  backgroundColor: settingsBackgroundColor,
+                },
+                // Android follows the Material top-app-bar convention: title and
+                // navigation icon use the on-surface color, not an accent color.
+                headerTintColor:
+                  Platform.OS === "ios"
+                    ? undefined
+                    : colorScheme === "dark"
+                    ? "#ffffff"
+                    : colors["slate-800"],
               };
               return (
                 <SettingsStack.Navigator initialRouteName="SettingsRoot">

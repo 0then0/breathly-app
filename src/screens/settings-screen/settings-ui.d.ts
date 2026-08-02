@@ -10,6 +10,9 @@ interface CommonItemProps {
   label?: string;
   secondaryLabel?: string;
   testID?: string;
+  // Rendered by the iOS implementation only.
+  iconName?: string;
+  iconBackgroundColor?: string;
 }
 
 export interface LinkItemProps extends CommonItemProps {
@@ -37,17 +40,23 @@ export interface StepperItemProps extends CommonItemProps {
   fractionDigits?: number;
 }
 
+export interface HeaderProps {
+  title: string;
+  onBack: () => void;
+}
+
 export interface RadioButtonItemProps extends CommonItemProps {
   selected?: boolean;
   onPress?: () => void;
   disabled?: boolean;
 }
 
-declare const SettingsUI: {
+export declare const SettingsUI: {
   Section: React.FC<PropsWithChildren<SectionProps>>;
-  LinkItem: FC<LinkItemProps>;
-  PickerItem: FC<SettingsItemPicker>;
-  SwitchItem: FC<SwitchItemProps>;
-  StepperItem: FC<StepperItemProps>;
-  RadioButtonItem: FC<RadioButtonItemProps>;
+  Header: React.FC<HeaderProps>;
+  LinkItem: React.FC<LinkItemProps>;
+  PickerItem: React.FC<PickerItemProps>;
+  SwitchItem: React.FC<SwitchItemProps>;
+  StepperItem: React.FC<StepperItemProps>;
+  RadioButtonItem: React.FC<RadioButtonItemProps>;
 };

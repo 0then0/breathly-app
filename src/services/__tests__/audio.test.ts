@@ -115,4 +115,18 @@ describe("guided breathing audio", () => {
     expect(mockPlayers[1].seekTo).toHaveBeenCalledWith(0);
     expect(mockPlayers[1].play).toHaveBeenCalledTimes(1);
   });
+
+  it("creates only the ending bell player for the disabled mode", async () => {
+    await setupGuidedBreathingAudio("disabled");
+
+    expect(mockCreateAudioPlayer).toHaveBeenCalledTimes(1);
+    expect(mockCreateAudioPlayer.mock.calls[0][0]).toEqual({
+      assetId: 1,
+      uri: "file:///audio/1.mp3",
+    });
+
+    await expect(playGuidedBreathingSound("breatheIn")).resolves.toBeUndefined();
+    expect(mockPlayers).toHaveLength(1);
+    expect(mockPlayers[0].play).not.toHaveBeenCalled();
+  });
 });

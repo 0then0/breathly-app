@@ -31,6 +31,10 @@ name: Customize and persist settings
     file: ../subflows/set-dark-theme.yaml
 - tapOn:
     id: "settings.vibration"
+- scrollUntilVisible:
+    element:
+      id: "settings.timer.increase"
+    direction: DOWN
 - tapOn:
     id: "settings.timer.increase"
 - runFlow:
@@ -52,6 +56,10 @@ name: Customize and persist settings
 - assertVisible: ".*Deep Calm \\(4-7-8-0\\).*"
 - assertVisible: ".*Disabled.*"
 - assertVisible: ".*Dark theme.*"
+- scrollUntilVisible:
+    element:
+      id: "settings.timer.value"
+    direction: DOWN
 - assertVisible:
     id: "settings.timer.value"
     text: "3"

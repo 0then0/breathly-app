@@ -39,7 +39,8 @@ const Section: React.FC<PropsWithChildren<SectionProps>> = ({ label, children })
 export interface BaseItemProps {
   label?: string;
   secondaryLabel?: string;
-  iconName?: IoniconName;
+  // Widened to string to match the shared interface; cast where rendered.
+  iconName?: string;
   iconBackgroundColor?: string;
   style?: ViewStyle;
   testID?: string;
@@ -58,7 +59,12 @@ const BaseItem: FC<PropsWithChildren<BaseItemProps>> = ({
         <View className="flex-row items-center">
           {iconName && (
             <View className="mr-2 rounded-md" style={{ backgroundColor: iconBackgroundColor }}>
-              <Ionicons style={{ padding: 4 }} name={iconName} size={18} color="white" />
+              <Ionicons
+                style={{ padding: 4 }}
+                name={iconName as IoniconName}
+                size={18}
+                color="white"
+              />
             </View>
           )}
           <View className="flex-col">
@@ -159,7 +165,6 @@ export const StepperItem: FC<StepperItemProps> = ({
       <View className="flex-row rounded-md border-hairline border-stone-200 dark:border-slate-600">
         <Pressable
           className="items-center justify-center  rounded-l-md bg-gray-100 px-3 py-1 dark:bg-slate-700"
-          style={{ opacity: decreaseDisabled ? 0.2 : 1 }}
           onPress={onDecrease}
           onLongPressInterval={onDecrease}
           disabled={decreaseDisabled}
@@ -169,10 +174,11 @@ export const StepperItem: FC<StepperItemProps> = ({
           <Ionicons
             name={"remove"}
             size={18}
+            style={{ opacity: decreaseDisabled ? 0.2 : 1 }}
             color={colorScheme === "dark" ? "white" : colors["slate-500"]}
           />
         </Pressable>
-        <View className={`${fractionDigits > 0 ? "w-14" : "w-8"} self-center px-2`}>
+        <View className={`${fractionDigits > 0 ? "w-14" : "w-12"} self-center px-2`}>
           <Text
             className="text-center font-breathly-mono dark:text-white"
             style={{ fontVariant: ["tabular-nums"] }}
@@ -186,7 +192,6 @@ export const StepperItem: FC<StepperItemProps> = ({
         </View>
         <Pressable
           className="items-center justify-center  rounded-r-md bg-gray-100 px-3 py-1 dark:bg-slate-700"
-          style={{ opacity: increaseDisabled ? 0.2 : 1 }}
           onPress={onIncrease}
           onLongPressInterval={onIncrease}
           disabled={increaseDisabled}
@@ -196,6 +201,7 @@ export const StepperItem: FC<StepperItemProps> = ({
           <Ionicons
             name={"add"}
             size={18}
+            style={{ opacity: increaseDisabled ? 0.2 : 1 }}
             color={colorScheme === "dark" ? "white" : colors["slate-500"]}
           />
         </Pressable>
@@ -217,26 +223,36 @@ export const RadioButtonItem: FC<RadioButtonItemProps> = ({
       <Pressable
         onPress={onPress}
         className="flex-shrink flex-row items-center py-2"
-        style={{ opacity: disabled ? 0.5 : 1 }}
         disabled={disabled}
         testID={baseProps.testID}
         accessibilityRole="radio"
         accessibilityState={{ checked: selected, disabled }}
       >
-        <View className="flex-shrink">
-          <Text className="dark:text-white">{label}</Text>
-          <Text className="text-slate-500">{secondaryLabel}</Text>
-        </View>
-        <View className="w-6 grow items-end">
-          {selected && <Ionicons name={"checkmark-sharp"} size={18} color={colors["blue-500"]} />}
+        {/* The dimming lives on an inner View: TouchableOpacity drives its own
+            animated opacity and ignores dynamic `opacity` style changes. */}
+        <View
+          className="flex-1 flex-row items-center"
+          style={{ opacity: disabled ? 0.5 : 1 }}
+        >
+          <View className="flex-shrink">
+            <Text className="dark:text-white">{label}</Text>
+            <Text className="text-slate-500">{secondaryLabel}</Text>
+          </View>
+          <View className="w-6 grow items-end">
+            {selected && <Ionicons name={"checkmark-sharp"} size={18} color={colors["blue-500"]} />}
+          </View>
         </View>
       </Pressable>
     </BaseItem>
   );
 };
 
+// iOS keeps the native-stack header; the custom header only exists on Android.
+const Header: FC<{ title: string; onBack: () => void }> = () => null;
+
 export const SettingsUI = {
   Section,
+  Header,
   LinkItem,
   PickerItem,
   SwitchItem,

@@ -14,6 +14,7 @@ import {
   customPatternDurationLimits,
   customPatternStepSizeMs,
   maximumTimeLimitMs,
+  type Theme,
 } from "@breathly/stores/settings-state";
 import { GuidedBreathingMode } from "@breathly/types/guided-breathing-mode";
 
@@ -51,6 +52,7 @@ export const SettingsRootScreen: FC<
   return (
     <>
       <Animated.View className="h-full w-full">
+        <SettingsUI.Header title="Customizations" onBack={navigation.goBack} />
         <ScrollView
           testID="settings.screen"
           contentInsetAdjustmentBehavior="automatic"
@@ -84,7 +86,7 @@ export const SettingsRootScreen: FC<
                   { value: "disabled", label: "Disabled" },
                 ] as { value: GuidedBreathingMode; label: string }[] // TODO:// Move to satisfies once prettier supports it
               }
-              onValueChange={setGuidedBreathingVoice}
+              onValueChange={(value) => setGuidedBreathingVoice(value as GuidedBreathingMode)}
               testID="settings.voice"
             />
           </SettingsUI.Section>
@@ -108,7 +110,7 @@ export const SettingsRootScreen: FC<
                   { value: "dark", label: "Dark theme" },
                 ]}
                 value={theme}
-                onValueChange={setTheme}
+                onValueChange={(value) => setTheme(value as Theme)}
                 testID="settings.theme"
               />
             )}
@@ -146,7 +148,7 @@ export const SettingsRootScreen: FC<
 
 export const SettingsPatternPickerScreen: FC<
   NativeStackScreenProps<SettingsStackParamList, "SettingsPatternPicker">
-> = () => {
+> = ({ navigation }) => {
   const {
     customPatternEnabled,
     setCustomPatternEnabled,
@@ -158,6 +160,7 @@ export const SettingsPatternPickerScreen: FC<
   return (
     <>
       <Animated.View className="h-full w-full">
+        <SettingsUI.Header title="Breathing Patterns" onBack={navigation.goBack} />
         <ScrollView
           testID="settings.patterns.screen"
           contentInsetAdjustmentBehavior="automatic"

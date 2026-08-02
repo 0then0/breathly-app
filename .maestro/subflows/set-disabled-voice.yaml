@@ -5,6 +5,8 @@ appId: com.mmazzarolo.breathly
       platform: Android
     commands:
       - tapOn:
+          id: "settings.voice"
+      - tapOn:
           id: "settings.voice.option.disabled"
 - runFlow:
     when:
