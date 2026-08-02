@@ -45,6 +45,11 @@ export const ExerciseScreen: FC<NativeStackScreenProps<RootStackParamList, "Exer
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
 
+  // The countdown, the paused screen and the completion screen need the screen
+  // awake as much as the exercise does: a screen that locks during the countdown
+  // pauses the session before it starts.
+  useKeepAwake();
+
   const { playExerciseStepAudio, playExerciseCompletedAudio, stopExerciseAudio } =
     useExerciseAudio(guidedBreathingVoice);
 
@@ -172,8 +177,6 @@ const ExerciseRunningFragment: FC<ExerciseRunningFragmentProps> = ({
     initialStepIndex,
     onStepIndexChange,
   );
-
-  useKeepAwake();
 
   const playStepHaptic = useExerciseHaptics(vibrationEnabled);
 
