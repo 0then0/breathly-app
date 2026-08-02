@@ -4,7 +4,7 @@
     "slug": "breathly",
     "version": "2.2.0",
     "orientation": "portrait",
-    "icon": "./assets/ios-icon.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "updates": {
       "fallbackToCacheTimeout": 0
@@ -12,7 +12,7 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "icon": "./assets/ios-icon.png",
+      "icon": "./assets/icon.png",
       "buildNumber": "18",
       "bundleIdentifier": "com.mmazzarolo.breathly",
       "infoPlist": {
@@ -32,7 +32,7 @@
         "foregroundImage": "./assets/android-adaptive-icon-foreground.png",
         "backgroundColor": "#ffffff"
       },
-      "icon": "./assets/android-icon.png",
+      "icon": "./assets/icon.png",
       "package": "com.mmazzarolo.breathly",
       "versionCode": 3145750
     },

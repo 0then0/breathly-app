@@ -1,8 +1,19 @@
 import ms from "ms";
 import { PatternPreset } from "@breathly/types/pattern-preset";
 
-// A non-empty tuple, so the first entry can serve as a total fallback without an assertion.
+// Sorted by display name. The `id` of a preset is persisted in the settings store and
+// validated by `normalizePersistedSettingsState`, so ids must never change: an id that
+// no longer matches silently resets that user to the Square pattern.
+//
+// Typed as a non-empty tuple, so the first entry can serve as a total fallback without an
+// assertion.
 export const patternPresets: [PatternPreset, ...PatternPreset[]] = [
+  {
+    id: "deep-calm",
+    name: "4-7-8 Deep Calm",
+    steps: [ms("4s"), ms("7s"), ms("8s"), 0],
+    description: "A natural tranquilizer for the nervous system. Do it at least twice a day.",
+  },
   {
     id: "awake",
     name: "Awake",
@@ -11,10 +22,18 @@ export const patternPresets: [PatternPreset, ...PatternPreset[]] = [
       "Use this technique first thing in the morning for quick burst of energy and alertness.",
   },
   {
-    id: "deep-calm",
-    name: "Deep Calm",
-    steps: [ms("4s"), ms("7s"), ms("8s"), 0],
-    description: "A natural tranquilizer for the nervous system. Do it at least twice a day.",
+    id: "coherent",
+    name: "Coherent",
+    steps: [ms("5.5s"), 0, ms("5.5s"), 0],
+    description:
+      "Equal inhales and exhales at about five and a half breaths per minute. This pace brings the heart rate and the breath into step.",
+  },
+  {
+    id: "extended-exhale",
+    name: "Extended Exhale",
+    steps: [ms("4s"), 0, ms("6s"), 0],
+    description:
+      "The exhale lasts longer than the inhale, which is the simplest way to settle. Use it when you have only a minute.",
   },
   {
     id: "pranayama",

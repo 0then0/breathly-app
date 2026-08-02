@@ -34,10 +34,14 @@ const guidedBreathingAudioAssets: GuidedBreathingAudioSounds = {
     breatheOut: sounds.paulBreatheOut,
     hold: sounds.paulHold,
   },
+  // The bell mode is used with the eyes closed, so the inhale and the exhale must
+  // sound different. They also carry the two `hold` steps of a pattern: `hold` reuses
+  // the inhale bell, because some patterns (`awake`, `coherent`, `extended-exhale`,
+  // `ujjayi`) have no hold steps at all and would otherwise never play cueBell2.
   bell: {
     breatheIn: sounds.cueBell1,
-    breatheOut: sounds.cueBell1,
-    hold: sounds.cueBell2,
+    breatheOut: sounds.cueBell2,
+    hold: sounds.cueBell1,
   },
   disabled: {
     breatheIn: undefined,
