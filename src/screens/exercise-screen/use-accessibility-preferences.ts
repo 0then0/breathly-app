@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AccessibilityInfo } from "react-native";
+import { AccessibilityInfo, Platform } from "react-native";
 
 // The exercise rotates and translates eight circles (sixteen in dark mode)
 // across the width of the screen for the whole session. That is the motion
@@ -30,4 +30,32 @@ export const useReduceMotion = () => {
   }, []);
 
   return reduceMotionEnabled;
+};
+
+export const useScreenReaderEnabled = () => {
+  const [screenReaderEnabled, setScreenReaderEnabled] = useState(false);
+
+  useEffect(() => {
+    // `react-native-web` answers "true" to this question in every browser, thus
+    // the app asks it only on the two mobile platforms.
+    if (Platform.OS === "web") return;
+
+    let active = true;
+    AccessibilityInfo.isScreenReaderEnabled()
+      .then((enabled) => {
+        if (active) setScreenReaderEnabled(enabled);
+      })
+      .catch(() => undefined);
+    const subscription = AccessibilityInfo.addEventListener(
+      "screenReaderChanged",
+      setScreenReaderEnabled,
+    );
+
+    return () => {
+      active = false;
+      subscription?.remove();
+    };
+  }, []);
+
+  return screenReaderEnabled;
 };
