@@ -1,7 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import { create } from "zustand";
-import { createJSONStorage, persist, subscribeWithSelector } from "zustand/middleware";
+import {
+  persist,
+  subscribeWithSelector,
+  type PersistStorage,
+  type StorageValue,
+} from "zustand/middleware";
 import { patternPresets } from "@breathly/assets/pattern-presets";
 import {
   adjustTimeLimit,
@@ -25,6 +30,38 @@ interface SettingsStore extends PersistedSettingsState {
   setTheme: (theme: Theme) => unknown;
   setVibrationEnabled: (vibrationEnabled: boolean) => unknown;
 }
+
+// An unreadable or damaged payload must never stop hydration. Zustand leaves `hasHydrated`
+// false when the read rejects, `useHydration` then never turns true, and the app renders an
+// empty view on every launch — with no way back, because the app has no network. Both
+// failures mean the same thing here: there are no usable stored settings. Report that, and
+// let the store start from its defaults.
+const settingsStorage: PersistStorage<SettingsStore> = {
+  getItem: async (name) => {
+    try {
+      const storedValue = await AsyncStorage.getItem(name);
+      if (storedValue == null) return null;
+      return JSON.parse(storedValue) as StorageValue<SettingsStore>;
+    } catch {
+      return null;
+    }
+  },
+  setItem: async (name, value) => {
+    try {
+      await AsyncStorage.setItem(name, JSON.stringify(value));
+    } catch {
+      // A failed write costs the user one setting. Rejecting would only add an unhandled
+      // rejection on top, and would not bring the value back.
+    }
+  },
+  removeItem: async (name) => {
+    try {
+      await AsyncStorage.removeItem(name);
+    } catch {
+      // Same reasoning as `setItem`.
+    }
+  },
+};
 
 export const useSettingsStore = create<SettingsStore>()(
   subscribeWithSelector(
@@ -54,7 +91,7 @@ export const useSettingsStore = create<SettingsStore>()(
       }),
       {
         name: "settings-storage",
-        storage: createJSONStorage(() => AsyncStorage),
+        storage: settingsStorage,
         merge: mergePersistedSettingsState,
       },
     ),
