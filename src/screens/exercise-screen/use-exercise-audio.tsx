@@ -38,7 +38,7 @@ export const useExerciseAudio = (guidedBreathingVoice: GuidedBreathingMode) => {
     (stepMetadata: StepMetadata) => {
       if (audioReady) void playGuidedBreathingSound(stepMetadata.audioId);
     },
-    [audioReady]
+    [audioReady],
   );
 
   const playExerciseCompletedAudio = useCallback(() => {

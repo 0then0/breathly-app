@@ -38,7 +38,7 @@ export const Timer: FC<Props> = ({
       previousTickAtMs.current,
       currentTickAtMs,
       AppState.currentState === "active",
-      maximumActiveTickGapMs
+      maximumActiveTickGapMs,
     );
     previousTickAtMs.current = currentTickAtMs;
     if (activeTickDeltaMs === 0) return;

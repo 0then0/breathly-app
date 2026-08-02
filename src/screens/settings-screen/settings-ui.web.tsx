@@ -74,10 +74,7 @@ const BaseItem: FC<PropsWithChildren<BaseItemProps>> = ({
     >
       {/* The dimming lives on an inner View: TouchableOpacity drives its own
           animated opacity and ignores dynamic `opacity` style changes. */}
-      <View
-        className="flex-1 flex-row justify-between"
-        style={{ opacity: disabled ? 0.5 : 1 }}
-      >
+      <View className="flex-1 flex-row justify-between" style={{ opacity: disabled ? 0.5 : 1 }}>
         {leftItem && <View className="w-[72px] items-center justify-center">{leftItem}</View>}
         {label && (
           <View className="grow-1 flex-1 shrink flex-col justify-center pr-4">

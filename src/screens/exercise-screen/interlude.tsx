@@ -34,24 +34,28 @@ export const ExerciseInterlude: FC<Props> = ({ onComplete }) => {
     duration: interludeAnimDuration,
   });
 
+  const countDownAndHide = async () => {
+    await delay(1000);
+    if (!isMountedRef.current) return;
+    setStep(2);
+    await delay(1000);
+    if (!isMountedRef.current) return;
+    setStep(1);
+    await delay(1000);
+    if (!isMountedRef.current) return;
+    hideContainerAnimation.start((done) => done && onComplete());
+  };
+
   const animateInterlude = async () => {
     await delay(interludeInitialDelay);
-    showSubtitleAnimation.start(async ({ finished }) => {
+    showSubtitleAnimation.start(({ finished }) => {
       if (!finished) return;
-      await delay(1000);
-      if (!isMountedRef.current) return;
-      setStep(2);
-      await delay(1000);
-      if (!isMountedRef.current) return;
-      setStep(1);
-      await delay(1000);
-      if (!isMountedRef.current) return;
-      hideContainerAnimation.start((done) => done && onComplete());
+      void countDownAndHide();
     });
   };
 
   useOnMount(() => {
-    animateInterlude();
+    void animateInterlude();
     return () => {
       isMountedRef.current = false;
       showSubtitleAnimation.stop();

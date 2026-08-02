@@ -45,7 +45,7 @@ export const Pressable: FC<PressableProps> = ({
     },
     currentlyLongPressed && onLongPressInterval && !otherProps.disabled
       ? longPressIntervalDelay
-      : null
+      : null,
   );
   const handleLongPress = (event: GestureResponderEvent) => {
     otherProps.onLongPress?.(event);

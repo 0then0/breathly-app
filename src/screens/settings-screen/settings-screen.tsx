@@ -30,7 +30,7 @@ export const SettingsRootScreen: FC<
   const decreaseTimeLimit = useSettingsStore((state) => state.decreaseTimeLimit);
   const shouldFollowSystemDarkMode = useSettingsStore((state) => state.shouldFollowSystemDarkMode);
   const setShouldFollowSystemDarkMode = useSettingsStore(
-    (state) => state.setShouldFollowSystemDarkMode
+    (state) => state.setShouldFollowSystemDarkMode,
   );
   const theme = useSettingsStore((state) => state.theme);
   const setTheme = useSettingsStore((state) => state.setTheme);

@@ -5,7 +5,7 @@ import { Animated } from "react-native";
 export const loopAnimations = (
   createAnimations: () => Animated.CompositeAnimation[],
   onStepStart: (stepIndex: number) => void,
-  initialStepIndex = 0
+  initialStepIndex = 0,
 ) => {
   let animations = createAnimations();
   if (animations.length === 0) return () => undefined;

@@ -87,7 +87,7 @@ export const Planet: FC<PlanetProps> = ({
           duration: PLANET_ANIM_DURATION,
           useNativeDriver: false,
         }),
-      ])
+      ]),
     );
 
     animation.start();

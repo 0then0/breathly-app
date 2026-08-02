@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 export function useOnUpdate<T>(
   onUpdate: (prevValue: T) => void,
   value: T,
-  triggerOnMount?: boolean
+  triggerOnMount?: boolean,
 ) {
   // Flag that inditcates whether we are in a mount or update phase
   const isMounted = useRef<boolean>(!!triggerOnMount);

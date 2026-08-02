@@ -38,7 +38,7 @@ export const ExerciseScreen: FC<NativeStackScreenProps<RootStackParamList, "Exer
   const [session, dispatchSession] = useReducer(
     exerciseSessionReducer,
     undefined,
-    createExerciseSession
+    createExerciseSession,
   );
   const activeElapsedMs = useRef(0);
   const insets = useSafeAreaInsets();
@@ -66,7 +66,7 @@ export const ExerciseScreen: FC<NativeStackScreenProps<RootStackParamList, "Exer
     (stepMetadata: StepMetadata) => {
       playExerciseStepAudio(stepMetadata);
     },
-    [playExerciseStepAudio]
+    [playExerciseStepAudio],
   );
 
   const handleExerciseComplete = useCallback(() => {
@@ -157,13 +157,13 @@ const ExerciseRunningFragment: FC<ExerciseRunningFragmentProps> = ({
   const [unmountContentAnimVal] = useState(new Animated.Value(1));
   const stepsMetadata = useMemo(
     () => buildStepsMetadata(selectedPatternSteps),
-    [selectedPatternSteps]
+    [selectedPatternSteps],
   );
 
   const { currentStep, exerciseAnimVal, textAnimVal } = useExerciseLoop(
     stepsMetadata,
     initialStepIndex,
-    onStepIndexChange
+    onStepIndexChange,
   );
 
   useKeepAwake();
@@ -194,7 +194,7 @@ const ExerciseRunningFragment: FC<ExerciseRunningFragmentProps> = ({
       const transition = getExerciseStepTransition(
         prevStepMetadata?.id,
         currentStep.id,
-        timeLimitReachedRef.current
+        timeLimitReachedRef.current,
       );
       if (transition === "complete") {
         startCompletion();
@@ -204,7 +204,7 @@ const ExerciseRunningFragment: FC<ExerciseRunningFragmentProps> = ({
       }
     },
     currentStep,
-    true
+    true,
   );
 
   const handleTimeLimitReached = useCallback(() => {

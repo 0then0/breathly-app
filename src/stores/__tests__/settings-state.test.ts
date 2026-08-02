@@ -60,7 +60,7 @@ describe("settings state", () => {
     const currentState = { ...defaultSettingsState, action };
     const mergedState = mergePersistedSettingsState(
       { theme: "dark", timeLimit: maximumTimeLimitMs + 1 },
-      currentState
+      currentState,
     );
 
     expect(mergedState.action).toBe(action);

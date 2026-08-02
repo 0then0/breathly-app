@@ -145,10 +145,10 @@ const Section: React.FC<PropsWithChildren<SectionProps>> = ({ label, children })
             items.length === 1
               ? "single"
               : index === 0
-              ? "first"
-              : index === items.length - 1
-              ? "last"
-              : "middle";
+                ? "first"
+                : index === items.length - 1
+                  ? "last"
+                  : "middle";
           return React.cloneElement(child as React.ReactElement<GroupPositionProp>, {
             groupPosition,
           });
@@ -286,9 +286,7 @@ const PickerItem: FC<PickerItemProps & GroupPositionProp> = ({
                 key={option.value}
                 selected={option.value === value}
                 onClick={() => onValueChange(option.value)}
-                modifiers={
-                  testID ? [testTagModifier(`${testID}.option.${option.value}`)] : []
-                }
+                modifiers={testID ? [testTagModifier(`${testID}.option.${option.value}`)] : []}
               >
                 <SegmentedButton.Label>
                   <Text maxLines={1}>{option.label}</Text>
@@ -322,7 +320,11 @@ const PickerItem: FC<PickerItemProps & GroupPositionProp> = ({
                   verticalAlignment="center"
                   modifiers={[
                     fillMaxWidth(),
-                    selectable(option.value === value, () => selectOption(option.value), "radioButton"),
+                    selectable(
+                      option.value === value,
+                      () => selectOption(option.value),
+                      "radioButton",
+                    ),
                     ...(testID ? [testTagModifier(`${testID}.option.${option.value}`)] : []),
                     padding(0, 12, 0, 12),
                   ]}

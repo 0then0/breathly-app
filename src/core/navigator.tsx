@@ -94,8 +94,8 @@ export const Navigator: FC = () => {
                   Platform.OS === "ios"
                     ? undefined
                     : colorScheme === "dark"
-                    ? "#ffffff"
-                    : colors["slate-800"],
+                      ? "#ffffff"
+                      : colors["slate-800"],
               };
               return (
                 <SettingsStack.Navigator initialRouteName="SettingsRoot">

@@ -29,7 +29,7 @@ const Section: React.FC<PropsWithChildren<SectionProps>> = ({ label, children })
               <View className="ml-4 h-hairline bg-stone-200 dark:bg-slate-500" />
               {child}
             </>
-          )
+          ),
         )}
       </View>
     </View>
@@ -230,10 +230,7 @@ export const RadioButtonItem: FC<RadioButtonItemProps> = ({
       >
         {/* The dimming lives on an inner View: TouchableOpacity drives its own
             animated opacity and ignores dynamic `opacity` style changes. */}
-        <View
-          className="flex-1 flex-row items-center"
-          style={{ opacity: disabled ? 0.5 : 1 }}
-        >
+        <View className="flex-1 flex-row items-center" style={{ opacity: disabled ? 0.5 : 1 }}>
           <View className="flex-shrink">
             <Text className="dark:text-white">{label}</Text>
             <Text className="text-slate-500">{secondaryLabel}</Text>

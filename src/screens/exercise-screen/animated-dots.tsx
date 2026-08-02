@@ -16,12 +16,12 @@ interface Props {
 export const AnimatedDots: FC<Props> = ({ visible = false, numberOfDots, totalDuration }) => {
   const dotAnimVals = useMemo(
     () => times(numberOfDots).map(() => new Animated.Value(0)),
-    [numberOfDots]
+    [numberOfDots],
   );
 
   const delayDuration = Math.max(
     0,
-    Math.floor(totalDuration / Math.max(numberOfDots, 1) - fadeInAnimDuration)
+    Math.floor(totalDuration / Math.max(numberOfDots, 1) - fadeInAnimDuration),
   );
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export const AnimatedDots: FC<Props> = ({ visible = false, numberOfDots, totalDu
           duration: fadeInAnimDuration,
         }),
         Animated.delay(delayDuration),
-      ])
+      ]),
     );
     sequence.start(({ finished }) => {
       if (finished) resetDots();

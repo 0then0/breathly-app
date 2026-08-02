@@ -1,0 +1,42 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "unicorn", "oxc", "jest", "import"],
+  "categories": {
+    "correctness": "error"
+  },
+  "options": {
+    "typeAware": true
+  },
+  "env": {
+    "browser": true,
+    "es2024": true,
+    "node": true
+  },
+  "rules": {
+    "typescript/ban-ts-comment": "warn",
+    "typescript/no-require-imports": "off",
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error",
+    "react-hooks/exhaustive-deps": "error",
+    "react-hooks/rules-of-hooks": "error"
+  },
+  "overrides": [
+    {
+      "files": ["**/__tests__/**"],
+      "rules": {
+        // Jest mocks are plain functions with no `this`, so detached references are safe.
+        "typescript/unbound-method": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "node_modules",
+    "android",
+    "ios",
+    "dist",
+    ".expo",
+    "coverage",
+    "web-build",
+    "artifacts"
+  ]
+}

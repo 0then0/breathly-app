@@ -37,7 +37,7 @@ export const useSettingsStore = create<SettingsStore>()(
             customPatternSteps: setCustomPatternStepValue(
               get().customPatternSteps,
               stepIndex,
-              stepValue
+              stepValue,
             ),
           });
         },
@@ -56,25 +56,25 @@ export const useSettingsStore = create<SettingsStore>()(
         name: "settings-storage",
         storage: createJSONStorage(() => AsyncStorage),
         merge: mergePersistedSettingsState,
-      }
-    )
-  )
+      },
+    ),
+  ),
 );
 
 export const useSelectedPatternName = () =>
   useSettingsStore((state) =>
     state.customPatternEnabled
       ? "Custom"
-      : patternPresets.find((patternPreset) => patternPreset.id === state.selectedPatternPresetId)
-          ?.name ?? patternPresets[0].name
+      : (patternPresets.find((patternPreset) => patternPreset.id === state.selectedPatternPresetId)
+          ?.name ?? patternPresets[0].name),
   );
 
 export const useSelectedPatternSteps = () =>
   useSettingsStore((state) =>
     state.customPatternEnabled
       ? state.customPatternSteps
-      : patternPresets.find((patternPreset) => patternPreset.id === state.selectedPatternPresetId)
-          ?.steps ?? patternPresets[0].steps
+      : (patternPresets.find((patternPreset) => patternPreset.id === state.selectedPatternPresetId)
+          ?.steps ?? patternPresets[0].steps),
   );
 
 // https://github.com/pmndrs/zustand/blob/725c2c0cc08df936f42a52e3df3dec76780a6e01/docs/integrations/persisting-store-data.md

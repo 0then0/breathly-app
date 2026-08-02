@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 100,
+  "sortImports": {
+    "customGroups": [
+      {
+        "groupName": "breathly",
+        "elementNamePattern": ["@breathly/*", "@breathly/**"]
+      }
+    ],
+    "groups": [
+      ["value-builtin", "value-external"],
+      "breathly",
+      ["value-parent", "value-sibling", "value-index"],
+      "unknown"
+    ],
+    "newlinesBetween": false
+  }
+}
