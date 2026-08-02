@@ -3,7 +3,7 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: npm run visual:capture -- <android|ios> <master|candidate> <device-id> [run-id]"
+  echo "Usage: bun run visual:capture -- <android|ios> <master|candidate> <device-id> [run-id]"
 }
 
 if [[ $# -lt 3 || $# -gt 4 ]]; then

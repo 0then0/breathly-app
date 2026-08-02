@@ -22,10 +22,10 @@
     "e2e:build:ios": "expo run:ios --configuration Release --no-bundler",
     "visual:capture": "bash scripts/visual-e2e/capture-installed.sh",
     "visual:compare": "node scripts/visual-e2e/compare.mjs",
-    "validate:static": "npm run typecheck && npm run lint && npm run format:check && npm test",
+    "validate:static": "bun run typecheck && bun run lint && bun run format:check && bun run test",
     "validate:expo": "expo install --check && expo-doctor",
     "validate:bundles": "expo export --platform all --output-dir dist/validate-export --clear",
-    "validate": "npm run validate:static && npm run validate:expo"
+    "validate": "bun run validate:static && bun run validate:expo"
   },
   "dependencies": {
     "@expo/ui": "~57.0.8",
@@ -80,6 +80,7 @@
   "engines": {
     "node": "^22.13.0 || ^24.0.0 || ^26.0.0"
   },
+  "packageManager": "bun@1.3.14",
   "expo": {
     "install": {
       "exclude": [
