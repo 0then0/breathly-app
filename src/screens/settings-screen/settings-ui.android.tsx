@@ -135,7 +135,7 @@ const Section: React.FC<PropsWithChildren<SectionProps>> = ({ label, children })
         <Text
           color={colors.primary}
           style={{ typography: "labelLarge" }}
-          modifiers={[padding(4, 24, 4, 8)]}
+          modifiers={[padding(16, 24, 16, 8)]}
         >
           {label}
         </Text>

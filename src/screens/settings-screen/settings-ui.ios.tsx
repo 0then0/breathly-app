@@ -39,7 +39,8 @@ const Section: React.FC<PropsWithChildren<SectionProps>> = ({ label, children })
 export interface BaseItemProps {
   label?: string;
   secondaryLabel?: string;
-  iconName?: IoniconName;
+  // Widened to string to match the shared interface; cast where rendered.
+  iconName?: string;
   iconBackgroundColor?: string;
   style?: ViewStyle;
   testID?: string;
@@ -58,7 +59,12 @@ const BaseItem: FC<PropsWithChildren<BaseItemProps>> = ({
         <View className="flex-row items-center">
           {iconName && (
             <View className="mr-2 rounded-md" style={{ backgroundColor: iconBackgroundColor }}>
-              <Ionicons style={{ padding: 4 }} name={iconName} size={18} color="white" />
+              <Ionicons
+                style={{ padding: 4 }}
+                name={iconName as IoniconName}
+                size={18}
+                color="white"
+              />
             </View>
           )}
           <View className="flex-col">

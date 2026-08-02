@@ -29,7 +29,7 @@ const Section: React.FC<PropsWithChildren<SectionProps>> = ({
 }) => {
   const bottomBorderClassName = "border-b-hairline border-b-slate-300 dark:border-b-slate-500";
   return (
-    <View className={`pb-2 ${!hideBottomBorderAndroid && bottomBorderClassName}`}>
+    <View className={`pb-2 ${hideBottomBorderAndroid ? "" : bottomBorderClassName}`}>
       <View className="pt-4">
         <Text className="pl-[72px] pb-2 text-xs text-blue-400">{label}</Text>
         {children}
