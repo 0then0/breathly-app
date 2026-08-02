@@ -2,6 +2,7 @@ import {
   createExerciseSession,
   exerciseSessionReducer,
   getActiveTickDeltaMs,
+  getExerciseStepTransition,
 } from "../exercise-session";
 
 describe("exercise session lifecycle", () => {
@@ -74,5 +75,38 @@ describe("exercise session lifecycle", () => {
     const invalidResume = exerciseSessionReducer(initial, { type: "resume" });
 
     expect(invalidResume).toBe(initial);
+  });
+});
+
+describe("exercise step transitions", () => {
+  it("announces the first step of the exercise", () => {
+    expect(getExerciseStepTransition(undefined, "inhale", false)).toBe("startStep");
+  });
+
+  it("does nothing when the loop repeats the same step", () => {
+    expect(getExerciseStepTransition("exhale", "exhale", false)).toBe("none");
+    expect(getExerciseStepTransition("exhale", "exhale", true)).toBe("none");
+  });
+
+  it("announces every step while the time limit is not reached", () => {
+    expect(getExerciseStepTransition("inhale", "afterInhale", false)).toBe("startStep");
+    expect(getExerciseStepTransition("afterInhale", "exhale", false)).toBe("startStep");
+    expect(getExerciseStepTransition("exhale", "afterExhale", false)).toBe("startStep");
+    expect(getExerciseStepTransition("afterExhale", "inhale", false)).toBe("startStep");
+  });
+
+  it("stops the exercise at the end of the exhale after the time limit", () => {
+    expect(getExerciseStepTransition("exhale", "afterExhale", true)).toBe("complete");
+    expect(getExerciseStepTransition("exhale", "inhale", true)).toBe("complete");
+  });
+
+  it("stops the exercise at the end of the hold that follows the exhale", () => {
+    expect(getExerciseStepTransition("afterExhale", "inhale", true)).toBe("complete");
+  });
+
+  it("keeps breathing after the time limit until the lungs are empty", () => {
+    expect(getExerciseStepTransition("inhale", "afterInhale", true)).toBe("startStep");
+    expect(getExerciseStepTransition("inhale", "exhale", true)).toBe("startStep");
+    expect(getExerciseStepTransition("afterInhale", "exhale", true)).toBe("startStep");
   });
 });

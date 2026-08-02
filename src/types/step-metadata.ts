@@ -1,7 +1,9 @@
 import type { GuidedBreathingStep } from "@breathly/types/guided-breathing-step";
 
+export type StepId = "inhale" | "afterInhale" | "exhale" | "afterExhale";
+
 export interface StepMetadata {
-  id: string;
+  id: StepId;
   audioId: GuidedBreathingStep;
   label: string;
   duration: number;

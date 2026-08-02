@@ -13,6 +13,7 @@ import { AnimatedDots } from "@breathly/screens/exercise-screen/animated-dots";
 import {
   createExerciseSession,
   exerciseSessionReducer,
+  getExerciseStepTransition,
   type ResumableExerciseStatus,
 } from "@breathly/screens/exercise-screen/exercise-session";
 import { StepDescription } from "@breathly/screens/exercise-screen/step-description";
@@ -68,7 +69,7 @@ export const ExerciseScreen: FC<NativeStackScreenProps<RootStackParamList, "Exer
     [playExerciseStepAudio]
   );
 
-  const handleTimeLimitReached = useCallback(() => {
+  const handleExerciseComplete = useCallback(() => {
     playExerciseCompletedAudio();
     dispatchSession({ type: "complete", activeElapsedMs: activeElapsedMs.current });
   }, [playExerciseCompletedAudio]);
@@ -104,7 +105,7 @@ export const ExerciseScreen: FC<NativeStackScreenProps<RootStackParamList, "Exer
             <StarsBackground size={widestDeviceDimension * 0.8} fadeIn={true} />
           )}
           <ExerciseRunningFragment
-            onTimeLimitReached={handleTimeLimitReached}
+            onComplete={handleExerciseComplete}
             onStepChange={handleExerciseStepChange}
             onStepIndexChange={handleStepIndexChange}
             initialActiveElapsedMs={session.activeElapsedMs}
@@ -133,7 +134,7 @@ export const ExerciseScreen: FC<NativeStackScreenProps<RootStackParamList, "Exer
 };
 
 interface ExerciseRunningFragmentProps {
-  onTimeLimitReached: () => unknown;
+  onComplete: () => unknown;
   onStepChange: (stepMetadata: StepMetadata) => unknown;
   onStepIndexChange: (stepIndex: number) => void;
   initialActiveElapsedMs: number;
@@ -144,7 +145,7 @@ interface ExerciseRunningFragmentProps {
 const unmountAnimDuration = 300;
 
 const ExerciseRunningFragment: FC<ExerciseRunningFragmentProps> = ({
-  onTimeLimitReached,
+  onComplete,
   onStepChange,
   onStepIndexChange,
   initialActiveElapsedMs,
@@ -167,30 +168,48 @@ const ExerciseRunningFragment: FC<ExerciseRunningFragmentProps> = ({
 
   useKeepAwake();
 
+  const playStepHaptic = useExerciseHaptics(vibrationEnabled);
+
+  // The time limit does not stop the exercise on its own: it only arms the
+  // completion. The step transition below then stops the exercise at the end of
+  // the first step that leaves the lungs empty.
+  const timeLimitReachedRef = useRef(false);
+  const completionStartedRef = useRef(false);
+
+  const startCompletion = () => {
+    if (completionStartedRef.current) return;
+    completionStartedRef.current = true;
+    animate(unmountContentAnimVal, {
+      toValue: 0,
+      duration: unmountAnimDuration,
+    }).start(({ finished }) => {
+      if (finished) {
+        onComplete();
+      }
+    });
+  };
+
   useOnUpdate(
     (prevStepMetadata) => {
-      if (prevStepMetadata?.id !== currentStep.id) {
+      const transition = getExerciseStepTransition(
+        prevStepMetadata?.id,
+        currentStep.id,
+        timeLimitReachedRef.current
+      );
+      if (transition === "complete") {
+        startCompletion();
+      } else if (transition === "startStep") {
         onStepChange(currentStep);
+        playStepHaptic();
       }
     },
     currentStep,
     true
   );
 
-  useExerciseHaptics(currentStep, vibrationEnabled);
-
-  const unmountContentAnimation = animate(unmountContentAnimVal, {
-    toValue: 0,
-    duration: unmountAnimDuration,
-  });
-
-  const handleTimeLimitReached = () => {
-    unmountContentAnimation.start(({ finished }) => {
-      if (finished) {
-        onTimeLimitReached();
-      }
-    });
-  };
+  const handleTimeLimitReached = useCallback(() => {
+    timeLimitReachedRef.current = true;
+  }, []);
 
   const contentAnimatedStyle = {
     opacity: unmountContentAnimVal,

@@ -7,7 +7,6 @@ import {
 import { animate } from "@breathly/utils/animate";
 import { formatTimer } from "@breathly/utils/format-timer";
 import { useInterval } from "@breathly/utils/use-interval";
-import { useOnMount } from "@breathly/utils/use-on-mount";
 
 type Props = {
   limit: number;
@@ -18,6 +17,8 @@ type Props = {
 
 const timerRefreshIntervalMs = 250;
 const maximumActiveTickGapMs = timerRefreshIntervalMs * 4;
+const showAnimDuration = 500;
+const hideAnimDuration = 400;
 
 export const Timer: FC<Props> = ({
   limit,
@@ -50,31 +51,32 @@ export const Timer: FC<Props> = ({
     onActiveElapsedChange(nextElapsedTimeMs);
   }, timerRefreshIntervalMs);
 
-  const showContainerAnimation = animate(opacityAnimVal, {
-    toValue: 1,
-  });
-
-  useOnMount(() => {
-    showContainerAnimation.start();
-    return () => {
-      showContainerAnimation.stop();
-    };
-  });
-
   const remainingTimeMs = limit ? Math.max(0, limit - elapsedTimeMs) : undefined;
+  const limitReached = remainingTimeMs === 0;
+
+  // The exercise continues until the end of the current exhale, thus the timer
+  // stays at 00:00 for some seconds. It fades away instead: the clock is
+  // complete, and only the last breath remains.
+  useEffect(() => {
+    const containerAnimation = animate(opacityAnimVal, {
+      toValue: limitReached ? 0 : 1,
+      duration: limitReached ? hideAnimDuration : showAnimDuration,
+    });
+    containerAnimation.start();
+    return () => {
+      containerAnimation.stop();
+    };
+  }, [limitReached, opacityAnimVal]);
 
   useEffect(() => {
-    if (remainingTimeMs === 0 && !limitReachedRef.current) {
+    if (limitReached && !limitReachedRef.current) {
       limitReachedRef.current = true;
       onLimitReached();
     }
-  }, [onLimitReached, remainingTimeMs]);
+  }, [limitReached, onLimitReached]);
 
   const containerAnimatedStyle = {
-    opacity: opacityAnimVal.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, 1],
-    }),
+    opacity: opacityAnimVal,
   };
 
   const timerText =
@@ -83,7 +85,14 @@ export const Timer: FC<Props> = ({
       : formatTimer(Math.ceil(remainingTimeMs / 1000));
 
   return (
-    <Animated.View className="mt-4" style={containerAnimatedStyle}>
+    <Animated.View
+      className="mt-4"
+      style={containerAnimatedStyle}
+      // The exercise continues after the timer fades away. Keep the invisible
+      // 00:00 out of the accessibility tree while the last breath continues.
+      accessibilityElementsHidden={limitReached}
+      importantForAccessibility={limitReached ? "no-hide-descendants" : "auto"}
+    >
       <Animated.Text
         className="text-center text-2xl text-slate-800 dark:text-white"
         style={{ fontVariant: ["tabular-nums"] }}
