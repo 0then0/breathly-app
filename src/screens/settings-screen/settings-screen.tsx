@@ -182,7 +182,10 @@ export const SettingsPatternPickerScreen: FC<
             />
             {customPatternEnabled &&
               customPatternDurations.map((stepValue, stepIndex) => {
-                const [lowerLimit, upperLimit] = customPatternDurationLimits[stepIndex];
+                const limits = customPatternDurationLimits[stepIndex];
+                if (!limits) return null;
+
+                const [lowerLimit, upperLimit] = limits;
                 const stepLabel = ["Inhale", "Hold", "Exhale", "Hold"][stepIndex];
                 return (
                   <SettingsUI.StepperItem

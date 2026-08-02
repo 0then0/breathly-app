@@ -12,7 +12,10 @@ export const loopAnimations = (
 
   let currentAnimationIndex = Math.min(Math.max(initialStepIndex, 0), animations.length - 1);
   const animateStep = () => {
-    animations[currentAnimationIndex].start(({ finished }) => {
+    const currentAnimation = animations[currentAnimationIndex];
+    if (!currentAnimation) return;
+
+    currentAnimation.start(({ finished }) => {
       if (!finished) return;
       currentAnimationIndex++;
       if (currentAnimationIndex >= animations.length) {

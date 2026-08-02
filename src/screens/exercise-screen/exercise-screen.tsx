@@ -194,6 +194,10 @@ const ExerciseRunningFragment: FC<ExerciseRunningFragmentProps> = ({
 
   useOnUpdate(
     (prevStepMetadata) => {
+      // An empty pattern would leave no current step. The duration limits stop that today,
+      // but nothing here should depend on that.
+      if (!currentStep) return;
+
       const transition = getExerciseStepTransition(
         prevStepMetadata?.id,
         currentStep.id,

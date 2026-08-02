@@ -1,7 +1,8 @@
 import ms from "ms";
-import { PatternPreset } from "../types/pattern-preset";
+import { PatternPreset } from "@breathly/types/pattern-preset";
 
-export const patternPresets: PatternPreset[] = [
+// A non-empty tuple, so the first entry can serve as a total fallback without an assertion.
+export const patternPresets: [PatternPreset, ...PatternPreset[]] = [
   {
     id: "awake",
     name: "Awake",

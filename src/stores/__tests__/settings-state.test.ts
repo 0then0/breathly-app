@@ -47,9 +47,9 @@ describe("settings state", () => {
     expect(normalized).toEqual({
       ...defaultSettingsState,
       customPatternSteps: [
-        customPatternDurationLimits[0][0],
+        customPatternDurationLimits[0]![0],
         defaultSettingsState.customPatternSteps[1],
-        customPatternDurationLimits[2][1],
+        customPatternDurationLimits[2]![1],
         3_000,
       ],
     });
@@ -75,7 +75,7 @@ describe("settings state", () => {
 
   it("clamps custom steps and ignores invalid indexes", () => {
     const steps = defaultSettingsState.customPatternSteps;
-    expect(setCustomPatternStepValue(steps, 0, 0)[0]).toBe(customPatternDurationLimits[0][0]);
+    expect(setCustomPatternStepValue(steps, 0, 0)[0]).toBe(customPatternDurationLimits[0]![0]);
     expect(setCustomPatternStepValue(steps, 4, 5_000)).toBe(steps);
   });
 });
