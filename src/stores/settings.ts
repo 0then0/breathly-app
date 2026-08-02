@@ -5,7 +5,6 @@ import { createJSONStorage, persist, subscribeWithSelector } from "zustand/middl
 import { patternPresets } from "@breathly/assets/pattern-presets";
 import {
   adjustTimeLimit,
-  clampTimeLimit,
   defaultSettingsState,
   mergePersistedSettingsState,
   setCustomPatternStepValue,
@@ -22,7 +21,6 @@ interface SettingsStore extends PersistedSettingsState {
   setGuidedBreathingVoice: (guidedBreathingVoice: GuidedBreathingMode) => unknown;
   increaseTimeLimit: () => unknown;
   decreaseTimeLimit: () => unknown;
-  setTimeLimit: (timeLimitMs: number) => unknown;
   setShouldFollowSystemDarkMode: (shouldFollowSystemDarkMode: boolean) => unknown;
   setTheme: (theme: Theme) => unknown;
   setVibrationEnabled: (vibrationEnabled: boolean) => unknown;
@@ -49,7 +47,6 @@ export const useSettingsStore = create<SettingsStore>()(
           set({ timeLimit: adjustTimeLimit(get().timeLimit, timeLimitStepMs) }),
         decreaseTimeLimit: () =>
           set({ timeLimit: adjustTimeLimit(get().timeLimit, -timeLimitStepMs) }),
-        setTimeLimit: (timeLimitMs) => set({ timeLimit: clampTimeLimit(timeLimitMs) }),
         setShouldFollowSystemDarkMode: (shouldFollowSystemDarkMode) =>
           set({ shouldFollowSystemDarkMode }),
         setTheme: (theme) => set({ theme }),

@@ -27,7 +27,6 @@ export const SettingsRootScreen: FC<
   const timeLimit = useSettingsStore((state) => state.timeLimit);
   const increaseTimeLimit = useSettingsStore((state) => state.increaseTimeLimit);
   const decreaseTimeLimit = useSettingsStore((state) => state.decreaseTimeLimit);
-  const setTimeLimit = useSettingsStore((state) => state.setTimeLimit);
   const shouldFollowSystemDarkMode = useSettingsStore((state) => state.shouldFollowSystemDarkMode);
   const setShouldFollowSystemDarkMode = useSettingsStore(
     (state) => state.setShouldFollowSystemDarkMode
@@ -137,10 +136,6 @@ export const SettingsRootScreen: FC<
               onDecrease={decreaseTimeLimit}
               decreaseDisabled={timeLimit <= 0}
               increaseDisabled={timeLimit >= maximumTimeLimitMs}
-              onChange={(minutes: number) => setTimeLimit(minutes * ms("1 min"))}
-              minimumValue={0}
-              maximumValue={maximumTimeLimitMs / ms("1 min")}
-              formatValue={(minutes: number) => (minutes <= 0 ? "No limit" : `${minutes} min`)}
               testID="settings.timer"
             />
           </SettingsUI.Section>

@@ -68,9 +68,6 @@ export const setCustomPatternStepValue = (
 export const adjustTimeLimit = (timeLimit: number, deltaMs: number) =>
   clampFiniteNumber(timeLimit + deltaMs, 0, maximumTimeLimitMs, defaultSettingsState.timeLimit);
 
-export const clampTimeLimit = (timeLimitMs: number) =>
-  clampFiniteNumber(timeLimitMs, 0, maximumTimeLimitMs, defaultSettingsState.timeLimit);
-
 export const normalizePersistedSettingsState = (value: unknown): PersistedSettingsState => {
   const candidate = isRecord(value) ? value : {};
   const candidateSteps = Array.isArray(candidate.customPatternSteps)

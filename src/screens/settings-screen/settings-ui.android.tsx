@@ -8,7 +8,6 @@ import {
   Row,
   SegmentedButton,
   SingleChoiceSegmentedButtonRow,
-  Slider,
   Switch,
   Text,
   TextButton,
@@ -98,12 +97,17 @@ const Header: FC<HeaderProps> = ({ title, onBack }) => {
         testID="settings.header.back"
         accessibilityRole="button"
         accessibilityLabel="Back"
-        android_ripple={{ color: colors.onSurface }}
+        // A borderless ripple draws a circle and needs no clipping; a bounded
+        // ripple under a rounded clip flashes as a square layer.
+        android_ripple={{
+          color: colorScheme === "dark" ? "rgba(255, 255, 255, 0.16)" : "rgba(27, 27, 34, 0.12)",
+          borderless: true,
+          radius: 24,
+        }}
         style={{
           width: 48,
           height: 48,
           borderRadius: 24,
-          overflow: "hidden",
           backgroundColor: colors.surfaceContainerHighest,
           alignItems: "center",
           justifyContent: "center",
@@ -366,72 +370,7 @@ const SwitchItem: FC<SwitchItemProps & GroupPositionProp> = ({
 const formatStepperValue = (value: number | string | undefined, fractionDigits: number) =>
   typeof value === "number" && fractionDigits > 0 ? value.toFixed(fractionDigits) : `${value}`;
 
-// Native ranged control following stock Android settings (font size, volume):
-// a continuous slider whose committed value snaps to whole units. The store
-// update happens on release so a drag doesn't spam the persisted state.
-const SliderItem: FC<StepperItemProps & GroupPositionProp> = ({
-  label,
-  value,
-  onChange,
-  minimumValue = 0,
-  maximumValue = 1,
-  formatValue,
-  testID,
-  groupPosition,
-}) => {
-  const cardColor = useCardColor();
-  const colorScheme = useSettingsColorScheme();
-  const colors = useMaterialColors({ colorScheme });
-  const [dragValue, setDragValue] = useState<number | null>(null);
-  const committedValue = typeof value === "number" ? value : minimumValue;
-  const shownValue = dragValue ?? committedValue;
-  const roundedValue = Math.round(shownValue);
-  const valueLabel = formatValue ? formatValue(roundedValue) : `${roundedValue}`;
-  return (
-    <ListItem
-      colors={{ containerColor: cardColor }}
-      modifiers={[
-        fillMaxWidth(),
-        clip(Shapes.RoundedCorner(groupCornerRadii(groupPosition ?? "single"))),
-        ...(testID ? [testTagModifier(testID)] : []),
-      ]}
-    >
-      <ListItem.HeadlineContent>
-        <Text>{label}</Text>
-      </ListItem.HeadlineContent>
-      <ListItem.SupportingContent>
-        <Column modifiers={[fillMaxWidth()]}>
-          <Text
-            color={colors.onSurfaceVariant}
-            modifiers={testID ? [testTagModifier(`${testID}.value`)] : []}
-          >
-            {valueLabel}
-          </Text>
-          <Slider
-            value={shownValue}
-            min={minimumValue}
-            max={maximumValue}
-            onValueChange={setDragValue}
-            onValueChangeFinished={() => {
-              onChange?.(Math.round(dragValue ?? committedValue));
-              setDragValue(null);
-            }}
-            modifiers={[fillMaxWidth(), ...(testID ? [testTagModifier(`${testID}.slider`)] : [])]}
-          />
-        </Column>
-      </ListItem.SupportingContent>
-    </ListItem>
-  );
-};
-
-const StepperItem: FC<StepperItemProps & GroupPositionProp> = (props) => {
-  if (props.onChange != null && props.maximumValue != null) {
-    return <SliderItem {...props} />;
-  }
-  return <StepperButtonsItem {...props} />;
-};
-
-const StepperButtonsItem: FC<StepperItemProps & GroupPositionProp> = ({
+const StepperItem: FC<StepperItemProps & GroupPositionProp> = ({
   label,
   secondaryLabel,
   value,
