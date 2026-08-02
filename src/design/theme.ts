@@ -18,6 +18,3 @@ export const useColorScheme = (): ColorScheme => {
   }
   return theme;
 };
-
-// True when the app renders in dark mode. A shorthand for the common check.
-export const useIsDarkMode = (): boolean => useColorScheme() === "dark";

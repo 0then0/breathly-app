@@ -21,6 +21,6 @@ export function useOnUpdate<T>(
     }
     // Update the ref object each time the value is updated
     valueRef.current = value;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [value]); // Run only when the value updates
 }

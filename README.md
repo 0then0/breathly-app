@@ -47,8 +47,6 @@ Breathly is a tiny React-Native app that I developed in my free time to refine m
 
 I hope the source code will be useful to someone.
 
-👉 **Check the [DEVLOG](./DEVLOG.md) for more informations and details about the app architecture and a few development highlights.**
-
 ## Resources and acknowledgements
 
 - I created the app icon using [SVGWave](https://svgwave.in/) and edited using [Affinity Photo](https://svgwave.in/).

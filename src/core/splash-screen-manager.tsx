@@ -12,7 +12,6 @@ if (Platform.OS !== "web") {
   void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const splashImageAsset = require("../../assets/splash.png");
 
 const splashBackgroundColor = "#F2F2F1";
