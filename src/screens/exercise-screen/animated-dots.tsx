@@ -2,6 +2,7 @@ import React, { FC, useEffect, useMemo } from "react";
 import { Animated, StyleSheet } from "react-native";
 import { colors } from "@breathly/design/colors";
 import { useColorScheme } from "@breathly/design/theme";
+import { useReduceMotion } from "@breathly/screens/exercise-screen/use-accessibility-preferences";
 import { animate } from "@breathly/utils/animate";
 import { interpolateScale } from "@breathly/utils/interpolate";
 import { times } from "@breathly/utils/times";
@@ -17,6 +18,7 @@ interface Props {
 
 export const AnimatedDots: FC<Props> = ({ visible = false, numberOfDots, totalDuration }) => {
   const isDarkMode = useColorScheme() === "dark";
+  const reduceMotionEnabled = useReduceMotion();
   const dotAnimVals = useMemo(
     () => times(numberOfDots).map(() => new Animated.Value(0)),
     [numberOfDots],
@@ -52,12 +54,15 @@ export const AnimatedDots: FC<Props> = ({ visible = false, numberOfDots, totalDu
       inputRange: [0, 1],
       outputRange: [0, 1],
     }),
-    transform: [
-      interpolateScale(val, {
-        inputRange: [0, 1],
-        outputRange: [0, 1],
-      }),
-    ],
+    // The dots only fade in when the user asked the system for less motion.
+    transform: reduceMotionEnabled
+      ? []
+      : [
+          interpolateScale(val, {
+            inputRange: [0, 1],
+            outputRange: [0, 1],
+          }),
+        ],
   }));
 
   return (

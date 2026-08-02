@@ -7,6 +7,7 @@ import {
   announceLiveRegionUpdate,
   getInterludeAccessibilityLabel,
 } from "@breathly/screens/exercise-screen/accessibility-announcements";
+import { useReduceMotion } from "@breathly/screens/exercise-screen/use-accessibility-preferences";
 import { animate } from "@breathly/utils/animate";
 import { delay } from "@breathly/utils/delay";
 import { interpolateTranslateY } from "@breathly/utils/interpolate";
@@ -22,6 +23,7 @@ const interludeInitialStep = 3;
 
 export const ExerciseInterlude: FC<Props> = ({ onComplete }) => {
   const isDarkMode = useColorScheme() === "dark";
+  const reduceMotionEnabled = useReduceMotion();
   const isMountedRef = useRef(true);
   const containerAnimVal = useRef(new Animated.Value(1)).current;
   const subtitleAnimVal = useRef(new Animated.Value(0)).current;
@@ -72,29 +74,34 @@ export const ExerciseInterlude: FC<Props> = ({ onComplete }) => {
     };
   });
 
+  // The countdown only fades when the user asked the system for less motion.
   const containerAnimatedStyle = {
     opacity: containerAnimVal.interpolate({
       inputRange: [0, 1],
       outputRange: [0, 1],
     }),
-    transform: [
-      interpolateTranslateY(containerAnimVal, {
-        inputRange: [0, 1],
-        outputRange: [0, 8],
-      }),
-    ],
+    transform: reduceMotionEnabled
+      ? []
+      : [
+          interpolateTranslateY(containerAnimVal, {
+            inputRange: [0, 1],
+            outputRange: [0, 8],
+          }),
+        ],
   };
   const subtitleAnimatedStyle = {
     opacity: subtitleAnimVal.interpolate({
       inputRange: [0, 1],
       outputRange: [0, 1],
     }),
-    transform: [
-      interpolateTranslateY(subtitleAnimVal, {
-        inputRange: [0, 1],
-        outputRange: [0, -8],
-      }),
-    ],
+    transform: reduceMotionEnabled
+      ? []
+      : [
+          interpolateTranslateY(subtitleAnimVal, {
+            inputRange: [0, 1],
+            outputRange: [0, -8],
+          }),
+        ],
   };
 
   return (

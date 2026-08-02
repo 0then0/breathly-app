@@ -4,6 +4,7 @@ import { colors } from "@breathly/design/colors";
 import { useColorScheme } from "@breathly/design/theme";
 import { fontFamilies, fontSizes } from "@breathly/design/typography";
 import { getStepAccessibilityLabel } from "@breathly/screens/exercise-screen/accessibility-announcements";
+import { useReduceMotion } from "@breathly/screens/exercise-screen/use-accessibility-preferences";
 import { interpolateTranslateY } from "@breathly/utils/interpolate";
 
 interface Props {
@@ -14,17 +15,21 @@ interface Props {
 
 export const StepDescription: FC<Props> = ({ label, durationMs, animationValue }) => {
   const isDarkMode = useColorScheme() === "dark";
+  const reduceMotionEnabled = useReduceMotion();
   const textAnimatedStyle = {
     opacity: animationValue.interpolate({
       inputRange: [0, 1],
       outputRange: [0, 1],
     }),
-    transform: [
-      interpolateTranslateY(animationValue, {
-        inputRange: [0, 1],
-        outputRange: [0, -8],
-      }),
-    ],
+    // The label only fades when the user asked the system for less motion.
+    transform: reduceMotionEnabled
+      ? []
+      : [
+          interpolateTranslateY(animationValue, {
+            inputRange: [0, 1],
+            outputRange: [0, -8],
+          }),
+        ],
   };
 
   return (
