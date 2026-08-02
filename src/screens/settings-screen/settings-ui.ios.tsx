@@ -13,7 +13,8 @@ import {
   StepperItemProps,
   SwitchItemProps,
   SectionProps,
-} from "./settings-ui";
+  type SettingsUIModule,
+} from "./settings-ui.types";
 
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 
@@ -373,7 +374,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export const SettingsUI = {
+export const SettingsUI: SettingsUIModule = {
   Section,
   Header,
   LinkItem,

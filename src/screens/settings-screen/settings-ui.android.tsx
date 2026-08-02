@@ -38,7 +38,8 @@ import {
   StepperItemProps,
   SwitchItemProps,
   SectionProps,
-} from "./settings-ui";
+  type SettingsUIModule,
+} from "./settings-ui.types";
 
 type ComposeModifier = ReturnType<typeof clickable>;
 
@@ -388,6 +389,12 @@ const StepperItem: FC<StepperItemProps & GroupPositionProp> = ({
       testID={testID}
       groupPosition={groupPosition}
       trailing={
+        // KNOWN GAP: these two buttons have no accessible name, so TalkBack reads "−" and
+        // "+" with no clue what they change. iOS and web set "Increase <label>" and
+        // "Decrease <label>". It cannot be fixed with the current `@expo/ui` API: the
+        // `semantics` modifier accepts only `contentType`, `FilledTonalButton` exposes no
+        // content description, and `Icon` — the one component that takes one — needs a
+        // vector drawable rather than a text glyph. Revisit when @expo/ui grows the prop.
         <Row horizontalArrangement={{ spacedBy: 4 }} verticalAlignment="center">
           <FilledTonalButton
             enabled={!decreaseDisabled}
@@ -418,7 +425,7 @@ const StepperItem: FC<StepperItemProps & GroupPositionProp> = ({
   );
 };
 
-export const SettingsUI = {
+export const SettingsUI: SettingsUIModule = {
   Section,
   Header,
   LinkItem,
