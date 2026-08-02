@@ -8,7 +8,7 @@ import { Pressable } from "@breathly/common/pressable";
 import { RootStackParamList } from "@breathly/core/navigator";
 import { colors } from "@breathly/design/colors";
 import { widestDeviceDimension } from "@breathly/design/metrics";
-import { useColorScheme } from "@breathly/design/theme";
+import { useColorScheme, useThemeColors } from "@breathly/design/theme";
 import { fontFamilies, fontSizes } from "@breathly/design/typography";
 import { AnimatedDots } from "@breathly/screens/exercise-screen/animated-dots";
 import {
@@ -44,6 +44,7 @@ export const ExerciseScreen: FC<NativeStackScreenProps<RootStackParamList, "Exer
   const activeElapsedMs = useRef(0);
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
+  const theme = useThemeColors();
 
   const { playExerciseStepAudio, playExerciseCompletedAudio, stopExerciseAudio } =
     useExerciseAudio(guidedBreathingVoice);
@@ -123,13 +124,13 @@ export const ExerciseScreen: FC<NativeStackScreenProps<RootStackParamList, "Exer
       {session.status === "completed" && <ExerciseComplete />}
       <View style={styles.closeButtonRow}>
         <Pressable
-          style={styles.closeButton}
+          style={[styles.closeButton, { borderColor: theme.control }]}
           onPress={navigation.goBack}
           testID="exercise.close"
           accessibilityLabel="Close breathing session"
           accessibilityRole="button"
         >
-          <Ionicons name="close" size={22} color="lightgray" />
+          <Ionicons name="close" size={22} color={theme.control} />
         </Pressable>
       </View>
     </View>
@@ -252,10 +253,11 @@ interface ExercisePausedProps {
 
 const ExercisePaused: FC<ExercisePausedProps> = ({ resumeStatus, onResume }) => {
   const isDarkMode = useColorScheme() === "dark";
+  const theme = useThemeColors();
   return (
     <View style={styles.pausedScreen} testID="exercise.paused">
       <Text style={[styles.pausedTitle, isDarkMode && styles.pausedTitleDark]}>Paused</Text>
-      <Text style={styles.pausedDescription}>
+      <Text style={[styles.pausedDescription, { color: theme.textSecondary }]}>
         {resumeStatus === "interlude"
           ? "The starting countdown was interrupted."
           : "Your session stopped while Breathly was in the background."}
@@ -276,7 +278,6 @@ const ExercisePaused: FC<ExercisePausedProps> = ({ resumeStatus, onResume }) => 
 const styles = StyleSheet.create({
   closeButton: {
     alignItems: "center",
-    borderColor: colors["gray-300"],
     borderRadius: 9999,
     borderWidth: 2,
     height: 64,
@@ -291,7 +292,6 @@ const styles = StyleSheet.create({
   },
   pausedDescription: {
     ...fontSizes.lg,
-    color: colors["slate-500"],
     fontFamily: fontFamilies.regular,
     marginBottom: 32,
     textAlign: "center",

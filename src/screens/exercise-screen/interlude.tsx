@@ -1,7 +1,7 @@
 import React, { FC, useRef, useState } from "react";
 import { Animated, StyleSheet, Text } from "react-native";
 import { colors } from "@breathly/design/colors";
-import { useColorScheme } from "@breathly/design/theme";
+import { useColorScheme, useThemeColors } from "@breathly/design/theme";
 import { fontFamilies, fontSizes } from "@breathly/design/typography";
 import { animate } from "@breathly/utils/animate";
 import { delay } from "@breathly/utils/delay";
@@ -17,6 +17,7 @@ const interludeAnimDuration = 400;
 
 export const ExerciseInterlude: FC<Props> = ({ onComplete }) => {
   const isDarkMode = useColorScheme() === "dark";
+  const theme = useThemeColors();
   const isMountedRef = useRef(true);
   const containerAnimVal = useRef(new Animated.Value(1)).current;
   const subtitleAnimVal = useRef(new Animated.Value(0)).current;
@@ -90,7 +91,9 @@ export const ExerciseInterlude: FC<Props> = ({ onComplete }) => {
     <Animated.View style={[styles.container, containerAnimatedStyle]} testID="exercise.interlude">
       <Text style={[styles.title, isDarkMode && styles.titleDark]}>Relax</Text>
       <Animated.View style={subtitleAnimatedStyle}>
-        <Text style={styles.subtitle}>{`Starting session in \n${step}`}</Text>
+        <Text
+          style={[styles.subtitle, { color: theme.textSecondary }]}
+        >{`Starting session in \n${step}`}</Text>
       </Animated.View>
     </Animated.View>
   );
@@ -104,7 +107,6 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     ...fontSizes.xl,
-    color: colors["slate-500"],
     fontFamily: fontFamilies.regular,
     textAlign: "center",
   },
