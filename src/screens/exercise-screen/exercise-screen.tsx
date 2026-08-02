@@ -221,6 +221,8 @@ const ExerciseRunningFragment: FC<ExerciseRunningFragmentProps> = ({
 
   useOnUpdate(
     (prevStepMetadata) => {
+      // The loop always gives a step, but the type of the index does not say so.
+      if (!currentStep) return;
       const transition = getExerciseStepTransition(
         prevStepMetadata?.id,
         currentStep.id,
