@@ -28,6 +28,12 @@ export const getSessionNowMs = () => globalThis.performance?.now() ?? Date.now()
 // The exercise keeps running while the app is inactive (the Control Center, the
 // app switcher or a call banner), thus the clock must keep counting there too.
 // Only a real background stops both.
+//
+// A gap that is longer than the maximum comes from a stall of the JavaScript
+// thread or from a suspension that the app state did not report. The maximum
+// limits the error of such a gap, but the gap must not be discarded: a slow
+// device stalls many times, and each discarded gap makes the session run past
+// the time limit that the user selected.
 export const getActiveTickDeltaMs = (
   previousTickAtMs: number,
   currentTickAtMs: number,
@@ -35,8 +41,8 @@ export const getActiveTickDeltaMs = (
   maximumActiveTickGapMs: number,
 ) => {
   const tickDeltaMs = currentTickAtMs - previousTickAtMs;
-  if (!appIsForeground || tickDeltaMs < 0 || tickDeltaMs > maximumActiveTickGapMs) return 0;
-  return tickDeltaMs;
+  if (!appIsForeground || tickDeltaMs < 0) return 0;
+  return Math.min(tickDeltaMs, maximumActiveTickGapMs);
 };
 
 export type ExerciseStepTransition = "none" | "startStep" | "complete";
