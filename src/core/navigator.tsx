@@ -104,7 +104,14 @@ export const Navigator: FC = () => {
                     component={SettingsRootScreen}
                     options={{
                       ...commonHeaderSettings,
-                      headerLargeTitle: true,
+                      // iOS 26 hides the large title when the header has an explicit
+                      // background color. React Navigation avoids this by making the
+                      // header transparent, but only when the color is unset. The screen
+                      // below the header already paints the same color, so the header
+                      // looks the same and the title becomes visible again.
+                      headerStyle:
+                        Platform.OS === "ios" ? undefined : commonHeaderSettings.headerStyle,
+                      headerLargeTitleEnabled: true,
                       headerTitle: "Customizations",
                       headerLargeTitleShadowVisible: true,
                     }}
