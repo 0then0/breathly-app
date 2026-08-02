@@ -41,6 +41,9 @@ maestro test .maestro/flows/settings-persistence.yaml
 Each top-level flow resets application data so it can run independently. The settings flow also
 kills and relaunches the app without clearing data to verify AsyncStorage persistence.
 
+The completion flow sets the shortest time limit and then waits for the exercise to end by itself.
+It runs for approximately 90 seconds, thus it is much slower than the other flows.
+
 ## Cross-version visual comparison
 
 Install the `master` or candidate release build, then capture its light and dark screenshots:

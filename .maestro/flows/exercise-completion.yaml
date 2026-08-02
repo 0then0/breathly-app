@@ -1,0 +1,48 @@
+appId: com.mmazzarolo.breathly
+name: Exercise completes after the last exhale
+---
+- clearState
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: "home.screen"
+    timeout: 10000
+- tapOn:
+    id: "home.customize"
+- extendedWaitUntil:
+    visible:
+      id: "settings.screen"
+    timeout: 5000
+# The default limit of two minutes makes this flow unnecessarily slow.
+- scrollUntilVisible:
+    element:
+      id: "settings.timer.decrease"
+    direction: DOWN
+- tapOn:
+    id: "settings.timer.decrease"
+- assertVisible:
+    id: "settings.timer.value"
+    text: "1"
+- runFlow:
+    file: ../subflows/close-settings.yaml
+- tapOn:
+    id: "home.start-session"
+- extendedWaitUntil:
+    visible:
+      id: "exercise.running"
+    timeout: 8000
+# The time limit does not stop the exercise immediately: the exercise continues
+# to the end of the current exhale. With the default pattern this adds a maximum
+# of twelve seconds to the minute of the time limit. The timeout is much longer,
+# because a slow emulator makes the exercise clock run behind the real time.
+- extendedWaitUntil:
+    visible:
+      id: "exercise.complete"
+    timeout: 180000
+- assertVisible: "Complete"
+- tapOn:
+    id: "exercise.close"
+- extendedWaitUntil:
+    visible:
+      id: "home.screen"
+    timeout: 5000

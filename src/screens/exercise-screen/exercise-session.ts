@@ -1,3 +1,5 @@
+import type { StepId } from "@breathly/types/step-metadata";
+
 export type ResumableExerciseStatus = "interlude" | "running";
 export type ExerciseStatus = ResumableExerciseStatus | "paused" | "completed";
 
@@ -32,6 +34,27 @@ export const getActiveTickDeltaMs = (
   const tickDeltaMs = currentTickAtMs - previousTickAtMs;
   if (!appIsActive || tickDeltaMs < 0 || tickDeltaMs > maximumActiveTickGapMs) return 0;
   return tickDeltaMs;
+};
+
+export type ExerciseStepTransition = "none" | "startStep" | "complete";
+
+// The exercise must not stop while the lungs are full: the user would then hold
+// the breath while the completion screen appears. These two steps end with empty
+// lungs, thus they are the only safe points at which the exercise can stop.
+const endsWithEmptyLungs = (stepId: StepId | undefined) =>
+  stepId === "exhale" || stepId === "afterExhale";
+
+// The time limit usually occurs in the middle of a step. The exercise then
+// continues to the first step boundary that leaves the lungs empty, and it stops
+// there. This adds at most one inhale, one hold and one exhale to the session.
+export const getExerciseStepTransition = (
+  previousStepId: StepId | undefined,
+  currentStepId: StepId,
+  timeLimitReached: boolean
+): ExerciseStepTransition => {
+  if (previousStepId === currentStepId) return "none";
+  if (timeLimitReached && endsWithEmptyLungs(previousStepId)) return "complete";
+  return "startStep";
 };
 
 export const exerciseSessionReducer = (
