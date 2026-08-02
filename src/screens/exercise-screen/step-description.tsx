@@ -3,14 +3,16 @@ import { Animated, StyleSheet } from "react-native";
 import { colors } from "@breathly/design/colors";
 import { useColorScheme } from "@breathly/design/theme";
 import { fontFamilies, fontSizes } from "@breathly/design/typography";
+import { getStepAccessibilityLabel } from "@breathly/screens/exercise-screen/accessibility-announcements";
 import { interpolateTranslateY } from "@breathly/utils/interpolate";
 
 interface Props {
   label: string;
+  durationMs: number;
   animationValue: Animated.Value;
 }
 
-export const StepDescription: FC<Props> = ({ label, animationValue }) => {
+export const StepDescription: FC<Props> = ({ label, durationMs, animationValue }) => {
   const isDarkMode = useColorScheme() === "dark";
   const textAnimatedStyle = {
     opacity: animationValue.interpolate({
@@ -29,6 +31,10 @@ export const StepDescription: FC<Props> = ({ label, animationValue }) => {
     <Animated.Text
       style={[styles.label, isDarkMode && styles.labelDark, textAnimatedStyle]}
       testID="exercise.step"
+      // Android reads the new step from the live region. iOS has no live
+      // regions: the exercise screen announces the step there.
+      accessibilityLiveRegion="polite"
+      accessibilityLabel={getStepAccessibilityLabel(label, durationMs)}
     >
       {label}
     </Animated.Text>

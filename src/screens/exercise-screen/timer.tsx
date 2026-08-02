@@ -3,6 +3,7 @@ import { Animated, AppState, StyleSheet } from "react-native";
 import { colors } from "@breathly/design/colors";
 import { useColorScheme } from "@breathly/design/theme";
 import { fontSizes } from "@breathly/design/typography";
+import { announceForScreenReader } from "@breathly/screens/exercise-screen/accessibility-announcements";
 import {
   getActiveTickDeltaMs,
   getSessionNowMs,
@@ -87,6 +88,9 @@ export const Timer: FC<Props> = ({
     hideAnimation.start(({ finished }) => {
       if (!finished) return;
       setLastBreathVisible(true);
+      // The clock is not a live region: it changes every second, and a live
+      // region would read every change.
+      announceForScreenReader(lastBreathLabel);
       showAnimation.start();
     });
     return () => {

@@ -10,6 +10,10 @@ import { colors } from "@breathly/design/colors";
 import { widestDeviceDimension } from "@breathly/design/metrics";
 import { useColorScheme } from "@breathly/design/theme";
 import { fontFamilies, fontSizes } from "@breathly/design/typography";
+import {
+  announceLiveRegionUpdate,
+  getStepAccessibilityLabel,
+} from "@breathly/screens/exercise-screen/accessibility-announcements";
 import { AnimatedDots } from "@breathly/screens/exercise-screen/animated-dots";
 import {
   createExerciseSession,
@@ -211,6 +215,9 @@ const ExerciseRunningFragment: FC<ExerciseRunningFragmentProps> = ({
       } else if (transition === "startStep") {
         onStepChange(currentStep);
         playStepHaptic();
+        announceLiveRegionUpdate(
+          getStepAccessibilityLabel(currentStep.label, currentStep.duration),
+        );
       }
     },
     currentStep,
@@ -236,7 +243,11 @@ const ExerciseRunningFragment: FC<ExerciseRunningFragmentProps> = ({
       {currentStep && (
         <View style={styles.stepContent}>
           <BreathingAnimation animationValue={exerciseAnimVal} />
-          <StepDescription label={currentStep.label} animationValue={textAnimVal} />
+          <StepDescription
+            label={currentStep.label}
+            durationMs={currentStep.duration}
+            animationValue={textAnimVal}
+          />
           <AnimatedDots
             numberOfDots={3}
             totalDuration={currentStep.duration}
