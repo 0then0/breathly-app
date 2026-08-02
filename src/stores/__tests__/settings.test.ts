@@ -25,10 +25,18 @@ const loadSettingsStore = async () => {
 const storedSettings = (overrides: Record<string, unknown>) =>
   JSON.stringify({ state: { ...defaultSettingsState, ...overrides }, version: 0 });
 
+let warnSpy: jest.SpyInstance;
+
 beforeEach(() => {
   jest.clearAllMocks();
   mockSetItem.mockResolvedValue(undefined);
   mockRemoveItem.mockResolvedValue(undefined);
+  // The storage adapter logs on failure by design, and most cases here provoke one.
+  warnSpy = jest.spyOn(console, "warn").mockImplementation(() => undefined);
+});
+
+afterEach(() => {
+  warnSpy.mockRestore();
 });
 
 describe("settings persistence", () => {
