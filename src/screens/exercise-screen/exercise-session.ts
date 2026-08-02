@@ -29,7 +29,7 @@ export const getActiveTickDeltaMs = (
   previousTickAtMs: number,
   currentTickAtMs: number,
   appIsActive: boolean,
-  maximumActiveTickGapMs: number
+  maximumActiveTickGapMs: number,
 ) => {
   const tickDeltaMs = currentTickAtMs - previousTickAtMs;
   if (!appIsActive || tickDeltaMs < 0 || tickDeltaMs > maximumActiveTickGapMs) return 0;
@@ -50,7 +50,7 @@ const endsWithEmptyLungs = (stepId: StepId | undefined) =>
 export const getExerciseStepTransition = (
   previousStepId: StepId | undefined,
   currentStepId: StepId,
-  timeLimitReached: boolean
+  timeLimitReached: boolean,
 ): ExerciseStepTransition => {
   if (previousStepId === currentStepId) return "none";
   if (timeLimitReached && endsWithEmptyLungs(previousStepId)) return "complete";
@@ -59,7 +59,7 @@ export const getExerciseStepTransition = (
 
 export const exerciseSessionReducer = (
   session: ExerciseSession,
-  action: ExerciseSessionAction
+  action: ExerciseSessionAction,
 ): ExerciseSession => {
   switch (action.type) {
     case "start":

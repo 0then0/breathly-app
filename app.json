@@ -44,6 +44,9 @@
         "projectId": "8a2dbb83-3bcc-4d88-9d99-5fd3220273ea"
       }
     },
+    "experiments": {
+      "reactCompiler": true
+    },
     "plugins": [
       [
         "expo-status-bar",

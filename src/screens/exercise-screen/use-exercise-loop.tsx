@@ -9,14 +9,14 @@ const textAnimDuration = 400;
 export const useExerciseLoop = (
   stepsMetadata: [StepMetadata, StepMetadata, StepMetadata, StepMetadata],
   initialStepIndex: number,
-  onStepStart: (stepIndex: number) => void
+  onStepStart: (stepIndex: number) => void,
 ) => {
   const activeSteps = useMemo(() => stepsMetadata.filter((step) => !step.skipped), [stepsMetadata]);
   // Capture the step index once at mount: the session store echoes every step change
   // back into this prop, and reading it live would tear down and restart the loop
   // effect on each step.
   const initialStepIndexRef = useRef(
-    Math.min(Math.max(initialStepIndex, 0), Math.max(activeSteps.length - 1, 0))
+    Math.min(Math.max(initialStepIndex, 0), Math.max(activeSteps.length - 1, 0)),
   );
   const initialStep = activeSteps[initialStepIndexRef.current];
   const initialExerciseAnimationValue =
@@ -45,13 +45,13 @@ export const useExerciseLoop = (
         }),
       ]);
     },
-    [exerciseAnimVal, textAnimVal]
+    [exerciseAnimVal, textAnimVal],
   );
 
   useEffect(() => {
     const createStepAnimations = () =>
       activeSteps.map((x) =>
-        animateStep(x.id === "inhale" || x.id === "afterInhale" ? 1 : 0, x.duration)
+        animateStep(x.id === "inhale" || x.id === "afterInhale" ? 1 : 0, x.duration),
       );
     const cleanupExerciseLoop = loopAnimations(
       createStepAnimations,
@@ -59,7 +59,7 @@ export const useExerciseLoop = (
         setCurrentStepIndex(stepIndex);
         onStepStart(stepIndex);
       },
-      initialStepIndexRef.current
+      initialStepIndexRef.current,
     );
     return () => {
       cleanupExerciseLoop();

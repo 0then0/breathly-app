@@ -50,7 +50,7 @@ const clampFiniteNumber = (value: unknown, minimum: number, maximum: number, fal
 export const setCustomPatternStepValue = (
   steps: CustomPatternSteps,
   stepIndex: number,
-  stepValue: number
+  stepValue: number,
 ): CustomPatternSteps => {
   const limits = customPatternDurationLimits[stepIndex];
   if (!limits) return steps;
@@ -60,7 +60,7 @@ export const setCustomPatternStepValue = (
     stepValue,
     limits[0],
     limits[1],
-    defaultSettingsState.customPatternSteps[stepIndex]
+    defaultSettingsState.customPatternSteps[stepIndex],
   );
   return nextSteps;
 };
@@ -78,16 +78,16 @@ export const normalizePersistedSettingsState = (value: unknown): PersistedSettin
       candidateSteps[index],
       customPatternDurationLimits[index][0],
       customPatternDurationLimits[index][1],
-      fallback
-    )
+      fallback,
+    ),
   ) as CustomPatternSteps;
   const selectedPatternPresetId = patternPresets.some(
-    (preset) => preset.id === candidate.selectedPatternPresetId
+    (preset) => preset.id === candidate.selectedPatternPresetId,
   )
     ? (candidate.selectedPatternPresetId as string)
     : defaultSettingsState.selectedPatternPresetId;
   const guidedBreathingVoice = guidedBreathingModes.includes(
-    candidate.guidedBreathingVoice as GuidedBreathingMode
+    candidate.guidedBreathingVoice as GuidedBreathingMode,
   )
     ? (candidate.guidedBreathingVoice as GuidedBreathingMode)
     : defaultSettingsState.guidedBreathingVoice;
@@ -106,7 +106,7 @@ export const normalizePersistedSettingsState = (value: unknown): PersistedSettin
       candidate.timeLimit,
       0,
       maximumTimeLimitMs,
-      defaultSettingsState.timeLimit
+      defaultSettingsState.timeLimit,
     ),
     shouldFollowSystemDarkMode:
       typeof candidate.shouldFollowSystemDarkMode === "boolean"
@@ -122,9 +122,9 @@ export const normalizePersistedSettingsState = (value: unknown): PersistedSettin
 
 export const mergePersistedSettingsState = <CurrentState extends PersistedSettingsState>(
   persistedState: unknown,
-  currentState: CurrentState
+  currentState: CurrentState,
 ): CurrentState =>
   ({
     ...currentState,
     ...normalizePersistedSettingsState(persistedState),
-  } as CurrentState);
+  }) as CurrentState;

@@ -22,16 +22,16 @@ brew install --formula mobile-dev-inc/tap/maestro
 ## Build and run
 
 ```sh
-npm run e2e:build:android
-npm run e2e:android
+bun run e2e:build:android
+bun run e2e:android
 ```
 
 ```sh
-npm run e2e:build:ios
-npm run e2e:ios
+bun run e2e:build:ios
+bun run e2e:ios
 ```
 
-Use `npm run e2e` when exactly one compatible simulator or emulator is available. To run one flow
+Use `bun run e2e` when exactly one compatible simulator or emulator is available. To run one flow
 while developing it, pass the path directly to Maestro, for example:
 
 ```sh
@@ -49,15 +49,15 @@ It runs for approximately 90 seconds, thus it is much slower than the other flow
 Install the `master` or candidate release build, then capture its light and dark screenshots:
 
 ```sh
-npm run visual:capture -- android master <emulator-id> local
-npm run visual:capture -- ios candidate <simulator-udid> local
+bun run visual:capture -- android master <emulator-id> local
+bun run visual:capture -- ios candidate <simulator-udid> local
 ```
 
 After capturing both revisions for both platforms under the same run ID, generate the PNG, JSON,
 and HTML comparison:
 
 ```sh
-npm run visual:compare -- --run-id local
+bun run visual:compare -- --run-id local
 ```
 
 Visual outputs live under the ignored `artifacts/visual-e2e` directory. Text artifacts are scrubbed

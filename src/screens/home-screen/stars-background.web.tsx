@@ -44,7 +44,7 @@ export const StarsBackground: FC<Props> = ({
           useNativeDriver: false,
           easing: Easing.linear,
         }),
-      ])
+      ]),
     );
 
     animation.start();

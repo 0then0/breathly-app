@@ -1,14 +1,15 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useKeepAwake } from "expo-keep-awake";
-import { useColorScheme } from "nativewind";
 import React, { FC, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { Animated, AppState, Text, View } from "react-native";
+import { Animated, AppState, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Pressable } from "@breathly/common/pressable";
 import { RootStackParamList } from "@breathly/core/navigator";
 import { colors } from "@breathly/design/colors";
 import { widestDeviceDimension } from "@breathly/design/metrics";
+import { useColorScheme } from "@breathly/design/theme";
+import { fontFamilies, fontSizes } from "@breathly/design/typography";
 import { AnimatedDots } from "@breathly/screens/exercise-screen/animated-dots";
 import {
   createExerciseSession,
@@ -38,11 +39,11 @@ export const ExerciseScreen: FC<NativeStackScreenProps<RootStackParamList, "Exer
   const [session, dispatchSession] = useReducer(
     exerciseSessionReducer,
     undefined,
-    createExerciseSession
+    createExerciseSession,
   );
   const activeElapsedMs = useRef(0);
   const insets = useSafeAreaInsets();
-  const { colorScheme } = useColorScheme();
+  const colorScheme = useColorScheme();
 
   const { playExerciseStepAudio, playExerciseCompletedAudio, stopExerciseAudio } =
     useExerciseAudio(guidedBreathingVoice);
@@ -66,7 +67,7 @@ export const ExerciseScreen: FC<NativeStackScreenProps<RootStackParamList, "Exer
     (stepMetadata: StepMetadata) => {
       playExerciseStepAudio(stepMetadata);
     },
-    [playExerciseStepAudio]
+    [playExerciseStepAudio],
   );
 
   const handleExerciseComplete = useCallback(() => {
@@ -88,15 +89,17 @@ export const ExerciseScreen: FC<NativeStackScreenProps<RootStackParamList, "Exer
 
   return (
     <View
-      className="flex-1 flex-col justify-between"
       testID="exercise.screen"
-      style={{
-        // Paddings to handle safe area
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom,
-        paddingLeft: insets.left,
-        paddingRight: insets.right,
-      }}
+      style={[
+        styles.screen,
+        {
+          // Paddings to handle safe area
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
+        },
+      ]}
     >
       {session.status === "interlude" && <ExerciseInterlude onComplete={handleInterludeComplete} />}
       {session.status === "running" && (
@@ -118,9 +121,9 @@ export const ExerciseScreen: FC<NativeStackScreenProps<RootStackParamList, "Exer
         <ExercisePaused resumeStatus={session.resumeStatus} onResume={handleResume} />
       )}
       {session.status === "completed" && <ExerciseComplete />}
-      <View className="items-center justify-center pb-10 pt-6">
+      <View style={styles.closeButtonRow}>
         <Pressable
-          className="h-16 w-16 items-center justify-center rounded-full border-2 border-gray-300 text-center"
+          style={styles.closeButton}
           onPress={navigation.goBack}
           testID="exercise.close"
           accessibilityLabel="Close breathing session"
@@ -157,13 +160,13 @@ const ExerciseRunningFragment: FC<ExerciseRunningFragmentProps> = ({
   const [unmountContentAnimVal] = useState(new Animated.Value(1));
   const stepsMetadata = useMemo(
     () => buildStepsMetadata(selectedPatternSteps),
-    [selectedPatternSteps]
+    [selectedPatternSteps],
   );
 
   const { currentStep, exerciseAnimVal, textAnimVal } = useExerciseLoop(
     stepsMetadata,
     initialStepIndex,
-    onStepIndexChange
+    onStepIndexChange,
   );
 
   useKeepAwake();
@@ -194,7 +197,7 @@ const ExerciseRunningFragment: FC<ExerciseRunningFragmentProps> = ({
       const transition = getExerciseStepTransition(
         prevStepMetadata?.id,
         currentStep.id,
-        timeLimitReachedRef.current
+        timeLimitReachedRef.current,
       );
       if (transition === "complete") {
         startCompletion();
@@ -204,7 +207,7 @@ const ExerciseRunningFragment: FC<ExerciseRunningFragmentProps> = ({
       }
     },
     currentStep,
-    true
+    true,
   );
 
   const handleTimeLimitReached = useCallback(() => {
@@ -216,7 +219,7 @@ const ExerciseRunningFragment: FC<ExerciseRunningFragmentProps> = ({
   };
 
   return (
-    <Animated.View style={contentAnimatedStyle} className="flex-1" testID="exercise.running">
+    <Animated.View style={[styles.runningContent, contentAnimatedStyle]} testID="exercise.running">
       <Timer
         limit={timeLimit}
         initialActiveElapsedMs={initialActiveElapsedMs}
@@ -224,7 +227,7 @@ const ExerciseRunningFragment: FC<ExerciseRunningFragmentProps> = ({
         onLimitReached={handleTimeLimitReached}
       />
       {currentStep && (
-        <View className="flex-1 items-center justify-center">
+        <View style={styles.stepContent}>
           <BreathingAnimation animationValue={exerciseAnimVal} />
           <StepDescription label={currentStep.label} animationValue={textAnimVal} />
           <AnimatedDots
@@ -243,25 +246,93 @@ interface ExercisePausedProps {
   onResume: () => void;
 }
 
-const ExercisePaused: FC<ExercisePausedProps> = ({ resumeStatus, onResume }) => (
-  <View className="flex-1 items-center justify-center px-8" testID="exercise.paused">
-    <Text className="mb-4 text-center font-breathly-serif-medium text-5xl text-slate-800 dark:text-white">
-      Paused
-    </Text>
-    <Text className="mb-8 text-center font-breathly-regular text-lg text-slate-500">
-      {resumeStatus === "interlude"
-        ? "The starting countdown was interrupted."
-        : "Your session stopped while Breathly was in the background."}
-    </Text>
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel="Resume breathing session"
-      className="w-72 max-w-xs items-center rounded-lg px-8 py-2"
-      style={{ backgroundColor: colors.pastel["orange-light"] }}
-      onPress={onResume}
-      testID="exercise.resume"
-    >
-      <Text className="py-1 text-lg text-slate-800">Resume</Text>
-    </Pressable>
-  </View>
-);
+const ExercisePaused: FC<ExercisePausedProps> = ({ resumeStatus, onResume }) => {
+  const isDarkMode = useColorScheme() === "dark";
+  return (
+    <View style={styles.pausedScreen} testID="exercise.paused">
+      <Text style={[styles.pausedTitle, isDarkMode && styles.pausedTitleDark]}>Paused</Text>
+      <Text style={styles.pausedDescription}>
+        {resumeStatus === "interlude"
+          ? "The starting countdown was interrupted."
+          : "Your session stopped while Breathly was in the background."}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Resume breathing session"
+        style={styles.resumeButton}
+        onPress={onResume}
+        testID="exercise.resume"
+      >
+        <Text style={styles.resumeButtonLabel}>Resume</Text>
+      </Pressable>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  closeButton: {
+    alignItems: "center",
+    borderColor: colors["gray-300"],
+    borderRadius: 9999,
+    borderWidth: 2,
+    height: 64,
+    justifyContent: "center",
+    width: 64,
+  },
+  closeButtonRow: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingBottom: 40,
+    paddingTop: 24,
+  },
+  pausedDescription: {
+    ...fontSizes.lg,
+    color: colors["slate-500"],
+    fontFamily: fontFamilies.regular,
+    marginBottom: 32,
+    textAlign: "center",
+  },
+  pausedScreen: {
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 32,
+  },
+  pausedTitle: {
+    ...fontSizes.xxl5,
+    color: colors["slate-800"],
+    fontFamily: fontFamilies.serifMedium,
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  pausedTitleDark: {
+    color: colors.white,
+  },
+  resumeButton: {
+    alignItems: "center",
+    backgroundColor: colors.pastel["orange-light"],
+    borderRadius: 8,
+    maxWidth: 320,
+    paddingHorizontal: 32,
+    paddingVertical: 8,
+    width: 288,
+  },
+  resumeButtonLabel: {
+    ...fontSizes.lg,
+    color: colors["slate-800"],
+    paddingVertical: 4,
+  },
+  runningContent: {
+    flex: 1,
+  },
+  screen: {
+    flex: 1,
+    flexDirection: "column",
+    justifyContent: "space-between",
+  },
+  stepContent: {
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "center",
+  },
+});

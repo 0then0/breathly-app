@@ -1,17 +1,15 @@
 import React, { FC, useEffect, useRef } from "react";
-import { Animated, Text } from "react-native";
+import { Animated, StyleSheet, Text } from "react-native";
+import { colors } from "@breathly/design/colors";
+import { useColorScheme } from "@breathly/design/theme";
+import { fontFamilies, fontSizes } from "@breathly/design/typography";
 import { animate } from "@breathly/utils/animate";
 import { interpolateTranslateY } from "@breathly/utils/interpolate";
 
 const mountAnimDuration = 400;
-const displayTitleTextStyle = {
-  includeFontPadding: true,
-  lineHeight: 80,
-  paddingBottom: 8,
-  textAlignVertical: "center" as const,
-};
 
 export const ExerciseComplete: FC = () => {
+  const isDarkMode = useColorScheme() === "dark";
   const mountAnimVal = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -37,17 +35,29 @@ export const ExerciseComplete: FC = () => {
   };
 
   return (
-    <Animated.View
-      className="flex-1 items-center justify-center"
-      style={containerAnimatedStyle}
-      testID="exercise.complete"
-    >
-      <Text
-        className="text-center font-breathly-serif-medium text-5xl text-slate-800 dark:text-white"
-        style={displayTitleTextStyle}
-      >
-        Complete
-      </Text>
+    <Animated.View style={[styles.container, containerAnimatedStyle]} testID="exercise.complete">
+      <Text style={[styles.title, isDarkMode && styles.titleDark]}>Complete</Text>
     </Animated.View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "center",
+  },
+  title: {
+    ...fontSizes.xxl5,
+    color: colors["slate-800"],
+    fontFamily: fontFamilies.serifMedium,
+    includeFontPadding: true,
+    lineHeight: 80,
+    paddingBottom: 8,
+    textAlign: "center",
+    textAlignVertical: "center",
+  },
+  titleDark: {
+    color: colors.white,
+  },
+});

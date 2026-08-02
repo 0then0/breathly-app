@@ -27,7 +27,7 @@ function parseArgs(argv) {
 
   if (!SAFE_RUN_ID.test(options.runId)) {
     throw new Error(
-      "--run-id must start with a letter or number and contain only letters, numbers, dots, underscores, or hyphens"
+      "--run-id must start with a letter or number and contain only letters, numbers, dots, underscores, or hyphens",
     );
   }
   if (
@@ -87,8 +87,8 @@ function buildHtml(results, maxDiffRatio) {
       return `
         <tr>
           <td><strong>${escapeHtml(result.platform)}</strong><br>${escapeHtml(
-        result.theme
-      )} / ${escapeHtml(result.checkpoint)}</td>
+            result.theme,
+          )} / ${escapeHtml(result.checkpoint)}</td>
           <td><img src="${escapeHtml(result.master)}" alt="master"></td>
           <td><img src="${escapeHtml(result.candidate)}" alt="candidate"></td>
           <td><img src="${escapeHtml(result.diff)}" alt="pixel diff"></td>
@@ -96,8 +96,10 @@ function buildHtml(results, maxDiffRatio) {
             raw: ${formatPercent(result.diffRatio)}<br>
             content: ${formatPercent(result.contentDiffRatio)}<br>
             <small>${result.differingPixels.toLocaleString()} px raw${
-        result.ignoredTopRows > 0 ? `; ignored top ${result.ignoredTopRows}px for content` : ""
-      }</small>
+              result.ignoredTopRows > 0
+                ? `; ignored top ${result.ignoredTopRows}px for content`
+                : ""
+            }</small>
           </td>
         </tr>`;
     })
@@ -129,7 +131,7 @@ function buildHtml(results, maxDiffRatio) {
   <body>
     <h1>Breathly visual comparison</h1>
     <p>${escapeHtml(
-      gate
+      gate,
     )} Pixelmatch threshold: 0.1; anti-aliased pixels are ignored. Content metrics exclude any full-width, pure-black leading compatibility band found only on master; raw metrics and diff images retain it.</p>
     <table>
       <thead><tr><th>Target</th><th>Master</th><th>Candidate</th><th>Diff</th><th>Changed</th></tr></thead>
@@ -156,7 +158,7 @@ function main() {
           "candidate",
           theme,
           "screenshots",
-          filename
+          filename,
         );
         const master = readPng(masterPath);
         const candidate = readPng(candidatePath);
@@ -165,7 +167,7 @@ function main() {
           throw new Error(
             `Screenshot dimensions differ for ${platform}/${theme}/${checkpoint}: ` +
               `master ${master.width}x${master.height}, ` +
-              `candidate ${candidate.width}x${candidate.height}`
+              `candidate ${candidate.width}x${candidate.height}`,
           );
         }
 
@@ -181,7 +183,7 @@ function main() {
             includeAA: false,
             alpha: 0.35,
             diffColor: [255, 0, 90],
-          }
+          },
         );
         const diffPath = path.join(diffRoot, platform, theme, filename);
         fs.mkdirSync(path.dirname(diffPath), { recursive: true });
@@ -199,7 +201,7 @@ function main() {
           null,
           master.width,
           contentHeight,
-          { threshold: 0.1, includeAA: false }
+          { threshold: 0.1, includeAA: false },
         );
 
         results.push({
@@ -223,20 +225,20 @@ function main() {
 
   fs.writeFileSync(
     path.join(runRoot, "visual-report.json"),
-    `${JSON.stringify({ runId: options.runId, results }, null, 2)}\n`
+    `${JSON.stringify({ runId: options.runId, results }, null, 2)}\n`,
   );
   fs.writeFileSync(
     path.join(runRoot, "visual-report.html"),
-    buildHtml(results, options.maxDiffRatio)
+    buildHtml(results, options.maxDiffRatio),
   );
 
   for (const result of results) {
     console.log(
       `${result.platform.padEnd(7)} ${result.theme.padEnd(5)} ${result.checkpoint.padEnd(
-        8
+        8,
       )} raw ${formatPercent(result.diffRatio).padStart(7)}  content ${formatPercent(
-        result.contentDiffRatio
-      ).padStart(7)}`
+        result.contentDiffRatio,
+      ).padStart(7)}`,
     );
   }
   console.log(`\nReport: ${path.join(runRoot, "visual-report.html")}`);

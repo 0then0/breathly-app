@@ -1,5 +1,4 @@
 import * as Font from "expo-font";
-import { NativeWindStyleSheet, useColorScheme as useNativeWindColorScheme } from "nativewind";
 import React, { FC, useEffect } from "react";
 import { Platform, UIManager, View, LayoutAnimation } from "react-native";
 import { fonts as fontAssets } from "@breathly/assets/fonts";
@@ -11,12 +10,6 @@ import {
 } from "@breathly/utils/use-sticky-immersive-reset";
 import { useThemedStatusBar } from "@breathly/utils/use-themed-status-bar";
 import { SplashScreenManager } from "./splash-screen-manager";
-
-if (Platform.OS === "web") {
-  NativeWindStyleSheet.setOutput({
-    default: "native",
-  });
-}
 
 // Enable layout animations on Android so that we can animate views to their new
 // positions when a layout change happens
@@ -40,7 +33,6 @@ export const EntryPoint: FC = () => {
 // Initializes the app state and, once done, hides the splash screen and shows
 // the AppRouter
 const Main: FC = () => {
-  const { setColorScheme } = useNativeWindColorScheme();
   const [areFontsLoaded] = Font.useFonts(fontAssets);
   const theme = useSettingsStore((state) => state.theme);
   const shouldFollowSystemDarkMode = useSettingsStore((state) => state.shouldFollowSystemDarkMode);
@@ -48,18 +40,14 @@ const Main: FC = () => {
   useStickyImmersiveReset();
   useThemedStatusBar();
 
+  // Animate the layout when the stored theme arrives, and on every later change.
+  // The color scheme itself now comes from the settings store, through
+  // `useColorScheme`, so there is nothing to push into a styling library.
   useEffect(() => {
     if (hydrated) {
       LayoutAnimation.easeInEaseOut();
-      if (shouldFollowSystemDarkMode) {
-        setColorScheme("system");
-      } else if (theme === "dark") {
-        setColorScheme("dark");
-      } else {
-        setColorScheme("light");
-      }
     }
-  }, [hydrated, setColorScheme, shouldFollowSystemDarkMode, theme]);
+  }, [hydrated, shouldFollowSystemDarkMode, theme]);
 
   if (!hydrated || !areFontsLoaded) {
     return <View />;

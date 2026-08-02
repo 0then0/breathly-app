@@ -23,8 +23,8 @@ jest.mock("@breathly/assets/sounds", () => ({
   },
 }));
 
-import { createAudioPlayer, setAudioModeAsync } from "expo-audio";
 import { Asset } from "expo-asset";
+import { createAudioPlayer, setAudioModeAsync } from "expo-audio";
 import { Platform } from "react-native";
 import {
   playGuidedBreathingSound,

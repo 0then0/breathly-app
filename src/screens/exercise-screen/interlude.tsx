@@ -1,5 +1,8 @@
 import React, { FC, useRef, useState } from "react";
-import { Animated, Text } from "react-native";
+import { Animated, StyleSheet, Text } from "react-native";
+import { colors } from "@breathly/design/colors";
+import { useColorScheme } from "@breathly/design/theme";
+import { fontFamilies, fontSizes } from "@breathly/design/typography";
 import { animate } from "@breathly/utils/animate";
 import { delay } from "@breathly/utils/delay";
 import { interpolateTranslateY } from "@breathly/utils/interpolate";
@@ -11,14 +14,9 @@ interface Props {
 
 const interludeInitialDelay = 600;
 const interludeAnimDuration = 400;
-const displayTitleTextStyle = {
-  includeFontPadding: true,
-  lineHeight: 80,
-  paddingBottom: 8,
-  textAlignVertical: "center" as const,
-};
 
 export const ExerciseInterlude: FC<Props> = ({ onComplete }) => {
+  const isDarkMode = useColorScheme() === "dark";
   const isMountedRef = useRef(true);
   const containerAnimVal = useRef(new Animated.Value(1)).current;
   const subtitleAnimVal = useRef(new Animated.Value(0)).current;
@@ -34,24 +32,28 @@ export const ExerciseInterlude: FC<Props> = ({ onComplete }) => {
     duration: interludeAnimDuration,
   });
 
+  const countDownAndHide = async () => {
+    await delay(1000);
+    if (!isMountedRef.current) return;
+    setStep(2);
+    await delay(1000);
+    if (!isMountedRef.current) return;
+    setStep(1);
+    await delay(1000);
+    if (!isMountedRef.current) return;
+    hideContainerAnimation.start((done) => done && onComplete());
+  };
+
   const animateInterlude = async () => {
     await delay(interludeInitialDelay);
-    showSubtitleAnimation.start(async ({ finished }) => {
+    showSubtitleAnimation.start(({ finished }) => {
       if (!finished) return;
-      await delay(1000);
-      if (!isMountedRef.current) return;
-      setStep(2);
-      await delay(1000);
-      if (!isMountedRef.current) return;
-      setStep(1);
-      await delay(1000);
-      if (!isMountedRef.current) return;
-      hideContainerAnimation.start((done) => done && onComplete());
+      void countDownAndHide();
     });
   };
 
   useOnMount(() => {
-    animateInterlude();
+    void animateInterlude();
     return () => {
       isMountedRef.current = false;
       showSubtitleAnimation.stop();
@@ -85,22 +87,39 @@ export const ExerciseInterlude: FC<Props> = ({ onComplete }) => {
   };
 
   return (
-    <Animated.View
-      className="flex-1 items-center justify-center"
-      style={containerAnimatedStyle}
-      testID="exercise.interlude"
-    >
-      <Text
-        className="mb-4 text-center font-breathly-serif-medium text-5xl text-slate-800 dark:text-white"
-        style={displayTitleTextStyle}
-      >
-        Relax
-      </Text>
+    <Animated.View style={[styles.container, containerAnimatedStyle]} testID="exercise.interlude">
+      <Text style={[styles.title, isDarkMode && styles.titleDark]}>Relax</Text>
       <Animated.View style={subtitleAnimatedStyle}>
-        <Text className="text-center font-breathly-regular text-xl text-slate-500 ">
-          {`Starting session in \n${step}`}
-        </Text>
+        <Text style={styles.subtitle}>{`Starting session in \n${step}`}</Text>
       </Animated.View>
     </Animated.View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "center",
+  },
+  subtitle: {
+    ...fontSizes.xl,
+    color: colors["slate-500"],
+    fontFamily: fontFamilies.regular,
+    textAlign: "center",
+  },
+  title: {
+    ...fontSizes.xxl5,
+    color: colors["slate-800"],
+    fontFamily: fontFamilies.serifMedium,
+    includeFontPadding: true,
+    lineHeight: 80,
+    marginBottom: 16,
+    paddingBottom: 8,
+    textAlign: "center",
+    textAlignVertical: "center",
+  },
+  titleDark: {
+    color: colors.white,
+  },
+});

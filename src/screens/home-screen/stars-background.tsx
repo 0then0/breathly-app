@@ -1,16 +1,13 @@
 import MaskedView from "@react-native-masked-view/masked-view";
 import { LinearGradient } from "expo-linear-gradient";
 import ms from "ms";
-import { styled } from "nativewind";
 import React, { FC, useEffect, useRef } from "react";
-import { Animated, Easing, Image } from "react-native";
+import { Animated, Easing, Image, StyleSheet } from "react-native";
 import { images } from "@breathly/assets/images";
 import { widestDeviceDimension } from "@breathly/design/metrics";
 import { animate } from "@breathly/utils/animate";
 
 const BACKGROUND_ANIM_DURATION = ms("2 min");
-
-const StyledMaskedView = styled(MaskedView);
 
 interface Props {
   fadeIn?: boolean;
@@ -41,7 +38,7 @@ export const StarsBackground: FC<Props> = ({
           useNativeDriver: true,
           easing: Easing.linear,
         }),
-      ])
+      ]),
     );
     animation.start();
     return () => animation.stop();
@@ -74,11 +71,10 @@ export const StarsBackground: FC<Props> = ({
   return (
     <Animated.View
       pointerEvents="none"
-      className="absolute w-full"
-      style={{ height: size, opacity: fadeInAnimValue }}
+      style={[styles.container, { height: size, opacity: fadeInAnimValue }]}
     >
-      <StyledMaskedView
-        className="flex-1"
+      <MaskedView
+        style={styles.mask}
         maskElement={
           <LinearGradient
             colors={["black", "transparent"]}
@@ -92,14 +88,31 @@ export const StarsBackground: FC<Props> = ({
           style={[{ height: size * 2, width: size * 2 }, { transform: backgroundTransform }]}
         >
           <Image
-            className="absolute top-0 z-10 h-full w-full"
+            style={styles.image}
             source={images.starsBackgroundHorizontal}
             resizeMode="cover"
             onLoad={handleLoad}
             onError={onImageLoaded}
           />
         </Animated.View>
-      </StyledMaskedView>
+      </MaskedView>
     </Animated.View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    position: "absolute",
+    width: "100%",
+  },
+  image: {
+    height: "100%",
+    position: "absolute",
+    top: 0,
+    width: "100%",
+    zIndex: 10,
+  },
+  mask: {
+    flex: 1,
+  },
+});

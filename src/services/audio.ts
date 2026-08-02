@@ -1,10 +1,10 @@
+import { Asset } from "expo-asset";
 import {
   createAudioPlayer,
   setAudioModeAsync,
   type AudioPlayer,
   type AudioSource,
 } from "expo-audio";
-import { Asset } from "expo-asset";
 import { Platform } from "react-native";
 import { sounds } from "@breathly/assets/sounds";
 import { GuidedBreathingMode } from "@breathly/types/guided-breathing-mode";
@@ -89,7 +89,7 @@ const prepareAudioSource = async (source: AudioSource): Promise<AudioSource> => 
 };
 
 const prepareOptionalAudioSource = async (
-  source: AudioSource | undefined
+  source: AudioSource | undefined,
 ): Promise<AudioSource | undefined> => (source == null ? undefined : prepareAudioSource(source));
 
 export function setupGuidedBreathingAudio(guidedBreathingMode: GuidedBreathingMode) {

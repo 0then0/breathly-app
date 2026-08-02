@@ -26,10 +26,10 @@ import {
   width as widthModifier,
 } from "@expo/ui/jetpack-compose/modifiers";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useColorScheme } from "nativewind";
 import React, { FC, PropsWithChildren, useState } from "react";
 import { Pressable, Text as NativeText, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useColorScheme } from "@breathly/design/theme";
 import {
   HeaderProps,
   LinkItemProps,
@@ -61,11 +61,8 @@ const groupCornerRadii = (groupPosition: GroupPosition) => {
 
 // The Compose palette must follow the app theme (which the user can force away
 // from the system theme), so every Host and color lookup gets the scheme from
-// NativeWind instead of the device.
-const useSettingsColorScheme = () => {
-  const { colorScheme } = useColorScheme();
-  return colorScheme === "dark" ? ("dark" as const) : ("light" as const);
-};
+// the settings store instead of the device.
+const useSettingsColorScheme = useColorScheme;
 
 const useCardColor = () => {
   const colorScheme = useSettingsColorScheme();
@@ -145,10 +142,10 @@ const Section: React.FC<PropsWithChildren<SectionProps>> = ({ label, children })
             items.length === 1
               ? "single"
               : index === 0
-              ? "first"
-              : index === items.length - 1
-              ? "last"
-              : "middle";
+                ? "first"
+                : index === items.length - 1
+                  ? "last"
+                  : "middle";
           return React.cloneElement(child as React.ReactElement<GroupPositionProp>, {
             groupPosition,
           });
@@ -286,9 +283,7 @@ const PickerItem: FC<PickerItemProps & GroupPositionProp> = ({
                 key={option.value}
                 selected={option.value === value}
                 onClick={() => onValueChange(option.value)}
-                modifiers={
-                  testID ? [testTagModifier(`${testID}.option.${option.value}`)] : []
-                }
+                modifiers={testID ? [testTagModifier(`${testID}.option.${option.value}`)] : []}
               >
                 <SegmentedButton.Label>
                   <Text maxLines={1}>{option.label}</Text>
@@ -322,7 +317,11 @@ const PickerItem: FC<PickerItemProps & GroupPositionProp> = ({
                   verticalAlignment="center"
                   modifiers={[
                     fillMaxWidth(),
-                    selectable(option.value === value, () => selectOption(option.value), "radioButton"),
+                    selectable(
+                      option.value === value,
+                      () => selectOption(option.value),
+                      "radioButton",
+                    ),
                     ...(testID ? [testTagModifier(`${testID}.option.${option.value}`)] : []),
                     padding(0, 12, 0, 12),
                   ]}

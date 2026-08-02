@@ -1,14 +1,11 @@
 import MaskedView from "@react-native-masked-view/masked-view";
 import { LinearGradient, LinearGradientPoint } from "expo-linear-gradient";
 import ms from "ms";
-import { styled } from "nativewind";
 import React, { FC, useEffect, useRef } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 import { colors } from "@breathly/design/colors";
 
 const PLANET_ANIM_DURATION = ms("8 sec");
-
-const StyledMaskedView = styled(MaskedView);
 
 export const PlanetsBackground: FC = () => {
   return (
@@ -82,15 +79,15 @@ export const Planet: FC<PlanetProps> = ({
           duration: PLANET_ANIM_DURATION,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     );
     animation.start();
     return () => animation.stop();
   }, [animationValue]);
   return (
     <Animated.View
-      className="absolute"
       style={{
+        position: "absolute",
         ...coords,
         transform: [
           {
@@ -117,12 +114,10 @@ export const Planet: FC<PlanetProps> = ({
         ],
       }}
     >
-      <StyledMaskedView
+      <MaskedView
         style={{ width: size, height: size }}
-        className="transparent"
         maskElement={
           <View
-            className="transparent"
             style={{
               // Transparent background because mask is based off alpha channel.
               backgroundColor: "transparent",
@@ -139,8 +134,16 @@ export const Planet: FC<PlanetProps> = ({
           </View>
         }
       >
-        <View className="h-full w-full rounded-full" style={{ backgroundColor: color }} />
-      </StyledMaskedView>
+        <View style={[styles.planet, { backgroundColor: color }]} />
+      </MaskedView>
     </Animated.View>
   );
 };
+
+const styles = StyleSheet.create({
+  planet: {
+    borderRadius: 9999,
+    height: "100%",
+    width: "100%",
+  },
+});

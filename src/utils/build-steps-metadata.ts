@@ -3,7 +3,7 @@ import type { StepMetadata } from "../types/step-metadata";
 // Given an array of durations (e.g.: [4, 4, 4, 4]) maps it to an array of
 // objects with the steps informations
 export const buildStepsMetadata = (
-  durations: number[]
+  durations: number[],
 ): [StepMetadata, StepMetadata, StepMetadata, StepMetadata] => [
   {
     id: "inhale",

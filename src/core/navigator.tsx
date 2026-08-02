@@ -1,10 +1,10 @@
 import { NavigationContainer, DefaultTheme, DarkTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { useColorScheme as useNativeWindColorScheme } from "nativewind";
 import React, { FC } from "react";
 import { Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { colors } from "@breathly/design/colors";
+import { useColorScheme } from "@breathly/design/theme";
 import { ExerciseScreen } from "@breathly/screens/exercise-screen/exercise-screen";
 import { HomeScreen } from "@breathly/screens/home-screen/home-screen";
 import {
@@ -28,7 +28,7 @@ export type SettingsStackParamList = {
 const SettingsStack = createNativeStackNavigator<SettingsStackParamList>();
 
 export const Navigator: FC = () => {
-  const { colorScheme } = useNativeWindColorScheme();
+  const colorScheme = useColorScheme();
   const baseTheme = colorScheme === "dark" ? DarkTheme : DefaultTheme;
   const backgroundColor = colorScheme === "dark" ? colors["slate-900"] : colors["stone-100"];
   // On Android the settings stack matches the stock settings app: window and
@@ -94,8 +94,8 @@ export const Navigator: FC = () => {
                   Platform.OS === "ios"
                     ? undefined
                     : colorScheme === "dark"
-                    ? "#ffffff"
-                    : colors["slate-800"],
+                      ? "#ffffff"
+                      : colors["slate-800"],
               };
               return (
                 <SettingsStack.Navigator initialRouteName="SettingsRoot">
@@ -104,7 +104,14 @@ export const Navigator: FC = () => {
                     component={SettingsRootScreen}
                     options={{
                       ...commonHeaderSettings,
-                      headerLargeTitle: true,
+                      // iOS 26 hides the large title when the header has an explicit
+                      // background color. React Navigation avoids this by making the
+                      // header transparent, but only when the color is unset. The screen
+                      // below the header already paints the same color, so the header
+                      // looks the same and the title becomes visible again.
+                      headerStyle:
+                        Platform.OS === "ios" ? undefined : commonHeaderSettings.headerStyle,
+                      headerLargeTitleEnabled: true,
                       headerTitle: "Customizations",
                       headerLargeTitleShadowVisible: true,
                     }}

@@ -3,7 +3,7 @@
 # Breathly <img src="./.github/icon-rounded.png" width="110" align="left">
 
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
-[![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
+[![styled with oxfmt](https://img.shields.io/badge/styled_with-oxfmt-ff69b4.svg)](https://oxc.rs/docs/guide/usage/formatter.html)
 
 &nbsp;
 
@@ -47,8 +47,6 @@ Breathly is a tiny React-Native app that I developed in my free time to refine m
 
 I hope the source code will be useful to someone.
 
-👉 **Check the [DEVLOG](./DEVLOG.md) for more informations and details about the app architecture and a few development highlights.**
-
 ## Resources and acknowledgements
 
 - I created the app icon using [SVGWave](https://svgwave.in/) and edited using [Affinity Photo](https://svgwave.in/).
@@ -65,4 +63,4 @@ I hope the source code will be useful to someone.
 ## Contributing
 
 Pull requests are welcome. File an issue for ideas, conversation or feedback.  
-Please notice that, currently, I'm not keeping the F-Droid version up-to-date myself (nor I was the one who created it). That said, feel free to update it as needed and let me know if you need any help 👍  
+Please notice that, currently, I'm not keeping the F-Droid version up-to-date myself (nor I was the one who created it). That said, feel free to update it as needed and let me know if you need any help 👍
