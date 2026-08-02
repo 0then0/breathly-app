@@ -3,6 +3,7 @@ import setColor from "color";
 import React, { FC, PropsWithChildren, useEffect, useRef } from "react";
 import {
   Animated,
+  StyleSheet,
   Switch,
   Text,
   TouchableOpacity,
@@ -12,6 +13,8 @@ import {
 } from "react-native";
 import { Pressable } from "@breathly/common/pressable";
 import { colors } from "@breathly/design/colors";
+import { useColorScheme } from "@breathly/design/theme";
+import { fontFamilies, fontSizes } from "@breathly/design/typography";
 import { animate } from "@breathly/utils/animate";
 import {
   LinkItemProps,
@@ -27,11 +30,17 @@ const Section: React.FC<PropsWithChildren<SectionProps>> = ({
   children,
   hideBottomBorderAndroid,
 }) => {
-  const bottomBorderClassName = "border-b-hairline border-b-slate-300 dark:border-b-slate-500";
+  const isDarkMode = useColorScheme() === "dark";
   return (
-    <View className={`pb-2 ${hideBottomBorderAndroid ? "" : bottomBorderClassName}`}>
-      <View className="pt-4">
-        <Text className="pl-[72px] pb-2 text-xs text-blue-400">{label}</Text>
+    <View
+      style={[
+        styles.section,
+        !hideBottomBorderAndroid && styles.sectionBorder,
+        !hideBottomBorderAndroid && isDarkMode && styles.sectionBorderDark,
+      ]}
+    >
+      <View style={styles.sectionBody}>
+        <Text style={styles.sectionLabel}>{label}</Text>
         {children}
       </View>
     </View>
@@ -62,10 +71,10 @@ const BaseItem: FC<PropsWithChildren<BaseItemProps>> = ({
   accessibilityState,
   children,
 }) => {
+  const isDarkMode = useColorScheme() === "dark";
   return (
     <TouchableOpacity
-      className="py-2 pr-8"
-      style={{ paddingLeft: leftItem ? 0 : 72, ...style }}
+      style={[styles.item, { paddingLeft: leftItem ? 0 : 72 }, style]}
       onPress={onPress}
       disabled={disabled || !onPress}
       testID={testID}
@@ -74,12 +83,12 @@ const BaseItem: FC<PropsWithChildren<BaseItemProps>> = ({
     >
       {/* The dimming lives on an inner View: TouchableOpacity drives its own
           animated opacity and ignores dynamic `opacity` style changes. */}
-      <View className="flex-1 flex-row justify-between" style={{ opacity: disabled ? 0.5 : 1 }}>
-        {leftItem && <View className="w-[72px] items-center justify-center">{leftItem}</View>}
+      <View style={[styles.itemContent, { opacity: disabled ? 0.5 : 1 }]}>
+        {leftItem && <View style={styles.itemLeft}>{leftItem}</View>}
         {label && (
-          <View className="grow-1 flex-1 shrink flex-col justify-center pr-4">
-            <Text className="text-slate-800 dark:text-white">{label}</Text>
-            {secondaryLabel && <Text className="text-sm text-slate-500">{secondaryLabel}</Text>}
+          <View style={styles.itemLabels}>
+            <Text style={[styles.itemLabel, isDarkMode && styles.textDark]}>{label}</Text>
+            {secondaryLabel && <Text style={styles.itemSecondaryLabel}>{secondaryLabel}</Text>}
           </View>
         )}
         {children}
@@ -115,23 +124,17 @@ const RadioButton: FC<RadioButtonProps> = ({
   }, [animatedValue, selected]);
   return (
     <TouchableOpacity
-      className="my-1 items-center justify-center rounded-full"
-      style={{
-        borderColor: disabled ? colors["stone-200"] : colors["blue-400"],
-        width: 20,
-        height: 20,
-        borderWidth: 2,
-      }}
+      style={[styles.radio, { borderColor: disabled ? colors["stone-200"] : colors["blue-400"] }]}
       onPress={disabled ? undefined : onPress}
     >
       <Animated.View
-        className="rounded-full"
-        style={{
-          width: 10,
-          height: 10,
-          backgroundColor: disabled ? colors["stone-200"] : colors["blue-400"],
-          transform: [{ scale: animatedValue }],
-        }}
+        style={[
+          styles.radioDot,
+          {
+            backgroundColor: disabled ? colors["stone-200"] : colors["blue-400"],
+            transform: [{ scale: animatedValue }],
+          },
+        ]}
       />
     </TouchableOpacity>
   );
@@ -200,12 +203,12 @@ const StepperItem: FC<StepperItemProps> = ({
   fractionDigits = 0,
   ...baseProps
 }) => {
+  const isDarkMode = useColorScheme() === "dark";
   return (
     <BaseItem {...baseProps}>
-      <View className="flex-row items-center">
+      <View style={styles.stepper}>
         <Pressable
-          className="items-center justify-center rounded-md bg-blue-400 px-2 py-1"
-          style={{ opacity: decreaseDisabled ? 0.4 : 1 }}
+          style={[styles.stepperButton, { opacity: decreaseDisabled ? 0.4 : 1 }]}
           onPress={onDecrease}
           onLongPressInterval={onDecrease}
           disabled={decreaseDisabled}
@@ -214,9 +217,9 @@ const StepperItem: FC<StepperItemProps> = ({
         >
           <MaterialCommunityIcons name="minus" size={16} color="white" />
         </Pressable>
-        <View className={`${fractionDigits > 0 ? "w-14" : "w-12"} self-center px-2`}>
+        <View style={[styles.stepperValue, fractionDigits > 0 && styles.stepperValueWithFractions]}>
           <Text
-            className="text-center font-breathly-mono font-semibold dark:text-white"
+            style={[styles.stepperValueText, isDarkMode && styles.textDark]}
             numberOfLines={1}
             testID={baseProps.testID ? `${baseProps.testID}.value` : undefined}
           >
@@ -226,8 +229,7 @@ const StepperItem: FC<StepperItemProps> = ({
           </Text>
         </View>
         <Pressable
-          className="items-center justify-center rounded-md bg-blue-400 px-2 py-1"
-          style={{ opacity: increaseDisabled ? 0.4 : 1 }}
+          style={[styles.stepperButton, { opacity: increaseDisabled ? 0.4 : 1 }]}
           onPress={onIncrease}
           onLongPressInterval={onIncrease}
           disabled={increaseDisabled}
@@ -243,6 +245,98 @@ const StepperItem: FC<StepperItemProps> = ({
 
 // Web keeps the navigation header; the custom header only exists on Android.
 const Header: FC<{ title: string; onBack: () => void }> = () => null;
+
+const styles = StyleSheet.create({
+  item: {
+    paddingRight: 32,
+    paddingVertical: 8,
+  },
+  itemContent: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  itemLabel: {
+    color: colors["slate-800"],
+  },
+  itemLabels: {
+    flex: 1,
+    flexDirection: "column",
+    flexShrink: 1,
+    justifyContent: "center",
+    paddingRight: 16,
+  },
+  itemLeft: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: 72,
+  },
+  itemSecondaryLabel: {
+    ...fontSizes.sm,
+    color: colors["slate-500"],
+  },
+  radio: {
+    alignItems: "center",
+    borderRadius: 9999,
+    borderWidth: 2,
+    height: 20,
+    justifyContent: "center",
+    marginVertical: 4,
+    width: 20,
+  },
+  radioDot: {
+    borderRadius: 9999,
+    height: 10,
+    width: 10,
+  },
+  section: {
+    paddingBottom: 8,
+  },
+  sectionBody: {
+    paddingTop: 16,
+  },
+  sectionBorder: {
+    borderBottomColor: colors["slate-300"],
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  sectionBorderDark: {
+    borderBottomColor: colors["slate-500"],
+  },
+  sectionLabel: {
+    ...fontSizes.xs,
+    color: colors["blue-400"],
+    paddingBottom: 8,
+    paddingLeft: 72,
+  },
+  stepper: {
+    alignItems: "center",
+    flexDirection: "row",
+  },
+  stepperButton: {
+    alignItems: "center",
+    backgroundColor: colors["blue-400"],
+    borderRadius: 6,
+    justifyContent: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  stepperValue: {
+    alignSelf: "center",
+    paddingHorizontal: 8,
+    width: 48,
+  },
+  stepperValueText: {
+    fontFamily: fontFamilies.mono,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  stepperValueWithFractions: {
+    width: 56,
+  },
+  textDark: {
+    color: colors.white,
+  },
+});
 
 export const SettingsUI = {
   Section,

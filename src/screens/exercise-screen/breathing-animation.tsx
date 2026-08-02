@@ -1,9 +1,9 @@
 import setColor from "color";
-import { useColorScheme } from "nativewind";
 import React, { FC, useEffect, useRef } from "react";
-import { Animated, View } from "react-native";
+import { Animated, StyleSheet, View } from "react-native";
 import { colors } from "@breathly/design/colors";
 import { shortestDeviceDimension } from "@breathly/design/metrics";
+import { useColorScheme } from "@breathly/design/theme";
 import { animate } from "@breathly/utils/animate";
 import { times } from "@breathly/utils/times";
 
@@ -16,7 +16,7 @@ interface Props {
 }
 
 export const BreathingAnimation: FC<Props> = ({ animationValue, color = colors.pastel.orange }) => {
-  const { colorScheme } = useColorScheme();
+  const colorScheme = useColorScheme();
   const mountAnimationValue = useRef(new Animated.Value(0)).current;
   const innerOpacity = animationValue.interpolate({
     inputRange: [0, 0.1, 1],
@@ -43,10 +43,10 @@ export const BreathingAnimation: FC<Props> = ({ animationValue, color = colors.p
         opacity: mountAnimationValue,
       }}
     >
-      <View className="absolute top-0 left-0 right-0 bottom-0 z-30 items-center justify-center">
+      <View style={styles.innerCircleLayer}>
         <Animated.View
-          className="absolute bg-white"
           style={{
+            position: "absolute",
             width: circleWidth,
             height: circleWidth,
             borderRadius: circleWidth / 2,
@@ -62,8 +62,11 @@ export const BreathingAnimation: FC<Props> = ({ animationValue, color = colors.p
         />
       </View>
       <View
-        className="absolute"
-        style={{ left: shortestDeviceDimension / 4, top: shortestDeviceDimension / 4 }}
+        style={{
+          position: "absolute",
+          left: shortestDeviceDimension / 4,
+          top: shortestDeviceDimension / 4,
+        }}
       >
         {
           // In dark mode we need to add a bit of brightness by rendering the animation with a
@@ -111,8 +114,13 @@ const RotatingCircle: FC<RotatingCircleProps> = ({ animationValue, opacity, inde
   });
   return (
     <Animated.View
-      className="absolute top-0 left-0 right-0 bottom-0 z-20"
       style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 20,
         opacity,
         backgroundColor: color,
         width: circleWidth,
@@ -133,3 +141,16 @@ const RotatingCircle: FC<RotatingCircleProps> = ({ animationValue, opacity, inde
     />
   );
 };
+
+const styles = StyleSheet.create({
+  innerCircleLayer: {
+    alignItems: "center",
+    bottom: 0,
+    justifyContent: "center",
+    left: 0,
+    position: "absolute",
+    right: 0,
+    top: 0,
+    zIndex: 30,
+  },
+});

@@ -1,5 +1,8 @@
 import React, { FC, useEffect, useRef, useState } from "react";
-import { Animated, AppState } from "react-native";
+import { Animated, AppState, StyleSheet } from "react-native";
+import { colors } from "@breathly/design/colors";
+import { useColorScheme } from "@breathly/design/theme";
+import { fontSizes } from "@breathly/design/typography";
 import {
   getActiveTickDeltaMs,
   getSessionNowMs,
@@ -26,6 +29,7 @@ export const Timer: FC<Props> = ({
   onActiveElapsedChange,
   onLimitReached,
 }) => {
+  const isDarkMode = useColorScheme() === "dark";
   const [elapsedTimeMs, setElapsedTimeMs] = useState(initialActiveElapsedMs);
   const elapsedTimeRef = useRef(initialActiveElapsedMs);
   const previousTickAtMs = useRef(getSessionNowMs());
@@ -86,16 +90,14 @@ export const Timer: FC<Props> = ({
 
   return (
     <Animated.View
-      className="mt-4"
-      style={containerAnimatedStyle}
+      style={[styles.container, containerAnimatedStyle]}
       // The exercise continues after the timer fades away. Keep the invisible
       // 00:00 out of the accessibility tree while the last breath continues.
       accessibilityElementsHidden={limitReached}
       importantForAccessibility={limitReached ? "no-hide-descendants" : "auto"}
     >
       <Animated.Text
-        className="text-center text-2xl text-slate-800 dark:text-white"
-        style={{ fontVariant: ["tabular-nums"] }}
+        style={[styles.timerText, isDarkMode && styles.timerTextDark]}
         testID="exercise.timer"
       >
         {timerText}
@@ -103,3 +105,18 @@ export const Timer: FC<Props> = ({
     </Animated.View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    marginTop: 16,
+  },
+  timerText: {
+    ...fontSizes.xxl2,
+    color: colors["slate-800"],
+    fontVariant: ["tabular-nums"],
+    textAlign: "center",
+  },
+  timerTextDark: {
+    color: colors.white,
+  },
+});

@@ -1,7 +1,7 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import ms from "ms";
 import React, { FC } from "react";
-import { Animated, ScrollView, LayoutAnimation, Button, Platform } from "react-native";
+import { Animated, ScrollView, LayoutAnimation, Button, Platform, StyleSheet } from "react-native";
 import { patternPresets } from "@breathly/assets/pattern-presets";
 import { SettingsStackParamList } from "@breathly/core/navigator";
 import { SettingsUI } from "@breathly/screens/settings-screen/settings-ui";
@@ -51,7 +51,7 @@ export const SettingsRootScreen: FC<
 
   return (
     <>
-      <Animated.View className="h-full w-full">
+      <Animated.View style={styles.screen}>
         <SettingsUI.Header title="Customizations" onBack={navigation.goBack} />
         <ScrollView
           testID="settings.screen"
@@ -159,7 +159,7 @@ export const SettingsPatternPickerScreen: FC<
   } = useSettingsStore();
   return (
     <>
-      <Animated.View className="h-full w-full">
+      <Animated.View style={styles.screen}>
         <SettingsUI.Header title="Breathing Patterns" onBack={navigation.goBack} />
         <ScrollView
           testID="settings.patterns.screen"
@@ -226,3 +226,10 @@ export const SettingsPatternPickerScreen: FC<
     </>
   );
 };
+
+const styles = StyleSheet.create({
+  screen: {
+    height: "100%",
+    width: "100%",
+  },
+});

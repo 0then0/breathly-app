@@ -1,5 +1,7 @@
 import React, { FC, useEffect, useMemo } from "react";
-import { Animated } from "react-native";
+import { Animated, StyleSheet } from "react-native";
+import { colors } from "@breathly/design/colors";
+import { useColorScheme } from "@breathly/design/theme";
 import { animate } from "@breathly/utils/animate";
 import { interpolateScale } from "@breathly/utils/interpolate";
 import { times } from "@breathly/utils/times";
@@ -14,6 +16,7 @@ interface Props {
 }
 
 export const AnimatedDots: FC<Props> = ({ visible = false, numberOfDots, totalDuration }) => {
+  const isDarkMode = useColorScheme() === "dark";
   const dotAnimVals = useMemo(
     () => times(numberOfDots).map(() => new Animated.Value(0)),
     [numberOfDots],
@@ -58,22 +61,31 @@ export const AnimatedDots: FC<Props> = ({ visible = false, numberOfDots, totalDu
   }));
 
   return (
-    <Animated.View className="flex-row items-center justify-center">
+    <Animated.View style={styles.container}>
       {times(numberOfDots).map((index) => (
         <Animated.View
           key={`dot_${index}`}
-          className="bg-slate-800 dark:bg-white"
-          style={[
-            {
-              width: dotSize,
-              height: dotSize,
-              borderRadius: dotSize / 2,
-              margin: dotSize * 0.7,
-            },
-            dotsAnimatedStyles[index],
-          ]}
+          style={[styles.dot, isDarkMode && styles.dotDark, dotsAnimatedStyles[index]]}
         />
       ))}
     </Animated.View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  dot: {
+    backgroundColor: colors["slate-800"],
+    borderRadius: dotSize / 2,
+    height: dotSize,
+    margin: dotSize * 0.7,
+    width: dotSize,
+  },
+  dotDark: {
+    backgroundColor: colors.white,
+  },
+});

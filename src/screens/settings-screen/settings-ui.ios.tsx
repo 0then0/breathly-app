@@ -1,10 +1,11 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Picker } from "@react-native-picker/picker";
-import { useColorScheme } from "nativewind";
 import React, { FC, PropsWithChildren, useState } from "react";
-import { LayoutAnimation, Switch, Text, View, ViewStyle } from "react-native";
+import { LayoutAnimation, StyleSheet, Switch, Text, View, ViewStyle } from "react-native";
 import { Pressable } from "@breathly/common/pressable";
 import { colors } from "@breathly/design/colors";
+import { useColorScheme } from "@breathly/design/theme";
+import { fontFamilies, fontSizes } from "@breathly/design/typography";
 import {
   LinkItemProps,
   PickerItemProps,
@@ -17,16 +18,17 @@ import {
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 
 const Section: React.FC<PropsWithChildren<SectionProps>> = ({ label, children }) => {
+  const isDarkMode = useColorScheme() === "dark";
   return (
-    <View className="pt-4">
-      <Text className="mb-2 px-4 text-xs uppercase text-slate-500">{label}</Text>
-      <View className="rounded-xl bg-white dark:bg-slate-800">
+    <View style={styles.section}>
+      <Text style={styles.sectionLabel}>{label}</Text>
+      <View style={[styles.sectionCard, isDarkMode && styles.sectionCardDark]}>
         {React.Children.map(children, (child, index) =>
           index === 0 || !child ? (
             child
           ) : (
             <>
-              <View className="ml-4 h-hairline bg-stone-200 dark:bg-slate-500" />
+              <View style={[styles.divider, isDarkMode && styles.dividerDark]} />
               {child}
             </>
           ),
@@ -53,12 +55,13 @@ const BaseItem: FC<PropsWithChildren<BaseItemProps>> = ({
   secondaryLabel,
   children,
 }) => {
+  const isDarkMode = useColorScheme() === "dark";
   return (
-    <View className="flex-row items-center justify-between py-2 px-4">
+    <View style={styles.item}>
       {(iconName || label) && (
-        <View className="flex-row items-center">
+        <View style={styles.row}>
           {iconName && (
-            <View className="mr-2 rounded-md" style={{ backgroundColor: iconBackgroundColor }}>
+            <View style={[styles.icon, { backgroundColor: iconBackgroundColor }]}>
               <Ionicons
                 style={{ padding: 4 }}
                 name={iconName as IoniconName}
@@ -67,9 +70,9 @@ const BaseItem: FC<PropsWithChildren<BaseItemProps>> = ({
               />
             </View>
           )}
-          <View className="flex-col">
-            <Text className="dark:text-white">{label}</Text>
-            {secondaryLabel && <Text className="text-slate-500">{secondaryLabel}</Text>}
+          <View style={styles.column}>
+            <Text style={isDarkMode && styles.textDark}>{label}</Text>
+            {secondaryLabel && <Text style={styles.secondaryText}>{secondaryLabel}</Text>}
           </View>
         </View>
       )}
@@ -82,8 +85,8 @@ export const LinkItem: FC<LinkItemProps> = ({ value, onPress, ...baseProps }) =>
   return (
     <Pressable onPress={onPress} testID={baseProps.testID} accessibilityRole="button">
       <BaseItem {...baseProps}>
-        <View className="flex-row items-center">
-          <Text className="text-slate-500">{value}</Text>
+        <View style={styles.row}>
+          <Text style={styles.secondaryText}>{value}</Text>
           <Ionicons
             style={{ padding: 4 }}
             name={"chevron-forward"}
@@ -102,7 +105,7 @@ export const PickerItem: FC<PickerItemProps> = ({
   onValueChange,
   ...baseProps
 }) => {
-  const { colorScheme } = useColorScheme();
+  const colorScheme = useColorScheme();
   const [expanded, setExpanded] = useState(false);
   const toggleExpanded = () => {
     LayoutAnimation.easeInEaseOut();
@@ -112,7 +115,7 @@ export const PickerItem: FC<PickerItemProps> = ({
     <>
       <Pressable onPress={toggleExpanded} testID={baseProps.testID} accessibilityRole="button">
         <BaseItem {...baseProps}>
-          <Text className="text-blue-500">
+          <Text style={styles.accentText}>
             {options.find((option) => option.value === value)?.label ?? value}
           </Text>
         </BaseItem>
@@ -159,12 +162,17 @@ export const StepperItem: FC<StepperItemProps> = ({
   fractionDigits = 0,
   ...baseProps
 }) => {
-  const { colorScheme } = useColorScheme();
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
   return (
     <BaseItem {...baseProps}>
-      <View className="flex-row rounded-md border-hairline border-stone-200 dark:border-slate-600">
+      <View style={[styles.stepper, isDarkMode && styles.stepperDark]}>
         <Pressable
-          className="items-center justify-center  rounded-l-md bg-gray-100 px-3 py-1 dark:bg-slate-700"
+          style={[
+            styles.stepperButton,
+            styles.stepperButtonLeft,
+            isDarkMode && styles.stepperButtonDark,
+          ]}
           onPress={onDecrease}
           onLongPressInterval={onDecrease}
           disabled={decreaseDisabled}
@@ -175,13 +183,12 @@ export const StepperItem: FC<StepperItemProps> = ({
             name={"remove"}
             size={18}
             style={{ opacity: decreaseDisabled ? 0.2 : 1 }}
-            color={colorScheme === "dark" ? "white" : colors["slate-500"]}
+            color={isDarkMode ? "white" : colors["slate-500"]}
           />
         </Pressable>
-        <View className={`${fractionDigits > 0 ? "w-14" : "w-12"} self-center px-2`}>
+        <View style={[styles.stepperValue, fractionDigits > 0 && styles.stepperValueWithFractions]}>
           <Text
-            className="text-center font-breathly-mono dark:text-white"
-            style={{ fontVariant: ["tabular-nums"] }}
+            style={[styles.stepperValueText, isDarkMode && styles.textDark]}
             numberOfLines={1}
             testID={baseProps.testID ? `${baseProps.testID}.value` : undefined}
           >
@@ -191,7 +198,11 @@ export const StepperItem: FC<StepperItemProps> = ({
           </Text>
         </View>
         <Pressable
-          className="items-center justify-center  rounded-r-md bg-gray-100 px-3 py-1 dark:bg-slate-700"
+          style={[
+            styles.stepperButton,
+            styles.stepperButtonRight,
+            isDarkMode && styles.stepperButtonDark,
+          ]}
           onPress={onIncrease}
           onLongPressInterval={onIncrease}
           disabled={increaseDisabled}
@@ -202,7 +213,7 @@ export const StepperItem: FC<StepperItemProps> = ({
             name={"add"}
             size={18}
             style={{ opacity: increaseDisabled ? 0.2 : 1 }}
-            color={colorScheme === "dark" ? "white" : colors["slate-500"]}
+            color={isDarkMode ? "white" : colors["slate-500"]}
           />
         </Pressable>
       </View>
@@ -218,11 +229,12 @@ export const RadioButtonItem: FC<RadioButtonItemProps> = ({
   disabled,
   ...baseProps
 }) => {
+  const isDarkMode = useColorScheme() === "dark";
   return (
     <BaseItem {...baseProps}>
       <Pressable
         onPress={onPress}
-        className="flex-shrink flex-row items-center py-2"
+        style={styles.radioPressable}
         disabled={disabled}
         testID={baseProps.testID}
         accessibilityRole="radio"
@@ -230,12 +242,12 @@ export const RadioButtonItem: FC<RadioButtonItemProps> = ({
       >
         {/* The dimming lives on an inner View: TouchableOpacity drives its own
             animated opacity and ignores dynamic `opacity` style changes. */}
-        <View className="flex-1 flex-row items-center" style={{ opacity: disabled ? 0.5 : 1 }}>
-          <View className="flex-shrink">
-            <Text className="dark:text-white">{label}</Text>
-            <Text className="text-slate-500">{secondaryLabel}</Text>
+        <View style={[styles.radioContent, { opacity: disabled ? 0.5 : 1 }]}>
+          <View style={styles.radioLabels}>
+            <Text style={isDarkMode && styles.textDark}>{label}</Text>
+            <Text style={styles.secondaryText}>{secondaryLabel}</Text>
           </View>
-          <View className="w-6 grow items-end">
+          <View style={styles.radioCheck}>
             {selected && <Ionicons name={"checkmark-sharp"} size={18} color={colors["blue-500"]} />}
           </View>
         </View>
@@ -246,6 +258,120 @@ export const RadioButtonItem: FC<RadioButtonItemProps> = ({
 
 // iOS keeps the native-stack header; the custom header only exists on Android.
 const Header: FC<{ title: string; onBack: () => void }> = () => null;
+
+const styles = StyleSheet.create({
+  accentText: {
+    color: colors["blue-500"],
+  },
+  column: {
+    flexDirection: "column",
+  },
+  divider: {
+    backgroundColor: colors["stone-200"],
+    height: StyleSheet.hairlineWidth,
+    marginLeft: 16,
+  },
+  dividerDark: {
+    backgroundColor: colors["slate-500"],
+  },
+  icon: {
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  item: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  radioCheck: {
+    alignItems: "flex-end",
+    flexGrow: 1,
+    width: 24,
+  },
+  radioContent: {
+    alignItems: "center",
+    flex: 1,
+    flexDirection: "row",
+  },
+  radioLabels: {
+    flexShrink: 1,
+  },
+  radioPressable: {
+    alignItems: "center",
+    flexDirection: "row",
+    flexShrink: 1,
+    paddingVertical: 8,
+  },
+  row: {
+    alignItems: "center",
+    flexDirection: "row",
+  },
+  secondaryText: {
+    color: colors["slate-500"],
+  },
+  section: {
+    paddingTop: 16,
+  },
+  sectionCard: {
+    backgroundColor: colors.white,
+    borderRadius: 12,
+  },
+  sectionCardDark: {
+    backgroundColor: colors["slate-800"],
+  },
+  sectionLabel: {
+    ...fontSizes.xs,
+    color: colors["slate-500"],
+    marginBottom: 8,
+    paddingHorizontal: 16,
+    textTransform: "uppercase",
+  },
+  stepper: {
+    borderColor: colors["stone-200"],
+    borderRadius: 6,
+    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: "row",
+  },
+  stepperButton: {
+    alignItems: "center",
+    backgroundColor: colors["gray-100"],
+    justifyContent: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  stepperButtonDark: {
+    backgroundColor: colors["slate-700"],
+  },
+  stepperButtonLeft: {
+    borderBottomLeftRadius: 6,
+    borderTopLeftRadius: 6,
+  },
+  stepperButtonRight: {
+    borderBottomRightRadius: 6,
+    borderTopRightRadius: 6,
+  },
+  stepperDark: {
+    borderColor: colors["slate-600"],
+  },
+  stepperValue: {
+    alignSelf: "center",
+    paddingHorizontal: 8,
+    width: 48,
+  },
+  stepperValueText: {
+    fontFamily: fontFamilies.mono,
+    fontVariant: ["tabular-nums"],
+    textAlign: "center",
+  },
+  stepperValueWithFractions: {
+    width: 56,
+  },
+  textDark: {
+    color: colors.white,
+  },
+});
 
 export const SettingsUI = {
   Section,
