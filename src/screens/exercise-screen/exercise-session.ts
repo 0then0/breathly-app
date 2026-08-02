@@ -25,14 +25,17 @@ export const createExerciseSession = (): ExerciseSession => ({
 
 export const getSessionNowMs = () => globalThis.performance?.now() ?? Date.now();
 
+// The exercise keeps running while the app is inactive (the Control Center, the
+// app switcher or a call banner), thus the clock must keep counting there too.
+// Only a real background stops both.
 export const getActiveTickDeltaMs = (
   previousTickAtMs: number,
   currentTickAtMs: number,
-  appIsActive: boolean,
+  appIsForeground: boolean,
   maximumActiveTickGapMs: number,
 ) => {
   const tickDeltaMs = currentTickAtMs - previousTickAtMs;
-  if (!appIsActive || tickDeltaMs < 0 || tickDeltaMs > maximumActiveTickGapMs) return 0;
+  if (!appIsForeground || tickDeltaMs < 0 || tickDeltaMs > maximumActiveTickGapMs) return 0;
   return tickDeltaMs;
 };
 

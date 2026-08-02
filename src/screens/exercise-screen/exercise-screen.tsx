@@ -50,7 +50,11 @@ export const ExerciseScreen: FC<NativeStackScreenProps<RootStackParamList, "Exer
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
-      if (nextAppState !== "active") {
+      // iOS reports "inactive" for the Control Center, the Notification Center,
+      // the app switcher and the banner of an incoming call. The app stays on
+      // the screen and the user comes back to a live session, thus only a real
+      // background interrupts the exercise.
+      if (nextAppState === "background") {
         stopExerciseAudio();
         dispatchSession({ type: "pause", activeElapsedMs: activeElapsedMs.current });
       }
@@ -254,7 +258,7 @@ const ExercisePaused: FC<ExercisePausedProps> = ({ resumeStatus, onResume }) => 
       <Text style={styles.pausedDescription}>
         {resumeStatus === "interlude"
           ? "The starting countdown was interrupted."
-          : "Your session stopped while Breathly was in the background."}
+          : "The session paused while Breathly was in the background."}
       </Text>
       <Pressable
         accessibilityRole="button"

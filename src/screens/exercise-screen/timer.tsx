@@ -41,7 +41,7 @@ export const Timer: FC<Props> = ({
     const activeTickDeltaMs = getActiveTickDeltaMs(
       previousTickAtMs.current,
       currentTickAtMs,
-      AppState.currentState === "active",
+      AppState.currentState !== "background",
       maximumActiveTickGapMs,
     );
     previousTickAtMs.current = currentTickAtMs;
