@@ -62,8 +62,9 @@ describe.each(implementations)("the %s settings UI", (_platform, SettingsUI) => 
       />,
     );
 
-    // Android's Compose buttons hold only "−" and "+", so TalkBack reads two unnamed symbols
-    // with no clue what they change. iOS and web name them; the contract should require it.
+    // iOS and web both name these. Android does not, and this test cannot see it: Compose
+    // components need the native runtime, and a TypeScript contract cannot require an
+    // accessibility label. That gap is documented at the call site in settings-ui.android.tsx.
     expect(screen.queryByLabelText(/increase/i)).not.toBeNull();
     expect(screen.queryByLabelText(/decrease/i)).not.toBeNull();
   });

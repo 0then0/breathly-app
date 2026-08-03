@@ -134,7 +134,7 @@ export const SettingsRootScreen: FC<
               testID="settings.vibration"
             />
           </SettingsUI.Section>
-          <SettingsUI.Section label="Timer" hideBottomBorder>
+          <SettingsUI.Section label="Timer" hideBottomBorderWeb>
             <SettingsUI.StepperItem
               label="Exercise timer"
               secondaryLabel="Time limit in minutes"
@@ -217,7 +217,7 @@ export const SettingsPatternPickerScreen: FC<
                 );
               })}
           </SettingsUI.Section>
-          <SettingsUI.Section label="Pattern presets" hideBottomBorder>
+          <SettingsUI.Section label="Pattern presets" hideBottomBorderWeb>
             {patternPresets.map((patternPreset) => {
               return (
                 <SettingsUI.RadioButtonItem
