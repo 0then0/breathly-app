@@ -4,7 +4,7 @@ import React, { FC, PropsWithChildren, useState } from "react";
 import { LayoutAnimation, StyleSheet, Switch, Text, View, ViewStyle } from "react-native";
 import { Pressable } from "@breathly/common/pressable";
 import { colors } from "@breathly/design/colors";
-import { useColorScheme } from "@breathly/design/theme";
+import { useColorScheme, useThemeColors } from "@breathly/design/theme";
 import { fontFamilies, fontSizes } from "@breathly/design/typography";
 import {
   LinkItemProps,
@@ -20,9 +20,10 @@ type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 
 const Section: React.FC<PropsWithChildren<SectionProps>> = ({ label, children }) => {
   const isDarkMode = useColorScheme() === "dark";
+  const theme = useThemeColors();
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionLabel}>{label}</Text>
+      <Text style={[styles.sectionLabel, { color: theme.textSecondary }]}>{label}</Text>
       <View style={[styles.sectionCard, isDarkMode && styles.sectionCardDark]}>
         {React.Children.map(children, (child, index) =>
           index === 0 || !child ? (
@@ -57,6 +58,7 @@ const BaseItem: FC<PropsWithChildren<BaseItemProps>> = ({
   children,
 }) => {
   const isDarkMode = useColorScheme() === "dark";
+  const theme = useThemeColors();
   return (
     <View style={styles.item}>
       {(iconName || label) && (
@@ -73,7 +75,11 @@ const BaseItem: FC<PropsWithChildren<BaseItemProps>> = ({
           )}
           <View style={styles.column}>
             <Text style={isDarkMode && styles.textDark}>{label}</Text>
-            {secondaryLabel && <Text style={styles.secondaryText}>{secondaryLabel}</Text>}
+            {secondaryLabel && (
+              <Text style={[styles.secondaryText, { color: theme.textSecondary }]}>
+                {secondaryLabel}
+              </Text>
+            )}
           </View>
         </View>
       )}
@@ -83,16 +89,17 @@ const BaseItem: FC<PropsWithChildren<BaseItemProps>> = ({
 };
 
 export const LinkItem: FC<LinkItemProps> = ({ value, onPress, ...baseProps }) => {
+  const theme = useThemeColors();
   return (
     <Pressable onPress={onPress} testID={baseProps.testID} accessibilityRole="button">
       <BaseItem {...baseProps}>
         <View style={styles.row}>
-          <Text style={styles.secondaryText}>{value}</Text>
+          <Text style={[styles.secondaryText, { color: theme.textSecondary }]}>{value}</Text>
           <Ionicons
             style={{ padding: 4 }}
             name={"chevron-forward"}
             size={18}
-            color={colors["slate-500"]}
+            color={theme.textSecondary}
           />
         </View>
       </BaseItem>
@@ -231,6 +238,7 @@ export const RadioButtonItem: FC<RadioButtonItemProps> = ({
   ...baseProps
 }) => {
   const isDarkMode = useColorScheme() === "dark";
+  const theme = useThemeColors();
   return (
     <BaseItem {...baseProps}>
       <Pressable
@@ -246,7 +254,9 @@ export const RadioButtonItem: FC<RadioButtonItemProps> = ({
         <View style={[styles.radioContent, { opacity: disabled ? 0.5 : 1 }]}>
           <View style={styles.radioLabels}>
             <Text style={isDarkMode && styles.textDark}>{label}</Text>
-            <Text style={styles.secondaryText}>{secondaryLabel}</Text>
+            <Text style={[styles.secondaryText, { color: theme.textSecondary }]}>
+              {secondaryLabel}
+            </Text>
           </View>
           <View style={styles.radioCheck}>
             {selected && <Ionicons name={"checkmark-sharp"} size={18} color={colors["blue-500"]} />}
@@ -309,9 +319,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
   },
-  secondaryText: {
-    color: colors["slate-500"],
-  },
+  secondaryText: {},
   section: {
     paddingTop: 16,
   },
@@ -324,7 +332,6 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     ...fontSizes.xs,
-    color: colors["slate-500"],
     marginBottom: 8,
     paddingHorizontal: 16,
     textTransform: "uppercase",

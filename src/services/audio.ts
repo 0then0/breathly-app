@@ -34,14 +34,15 @@ const guidedBreathingAudioAssets: GuidedBreathingAudioSounds = {
     breatheOut: sounds.paulBreatheOut,
     hold: sounds.paulHold,
   },
-  // The bell mode is used with the eyes closed, so the inhale and the exhale must
-  // sound different. They also carry the two `hold` steps of a pattern: `hold` reuses
-  // the inhale bell, because some patterns (`awake`, `coherent`, `extended-exhale`,
-  // `ujjayi`) have no hold steps at all and would otherwise never play cueBell2.
+  // The bell mode is used with the eyes closed, so the two directions must not sound the
+  // same. Only the direction changes are cued: `buildStepsMetadata` gives the id `hold` to
+  // both the step after the inhale and the step after the exhale, so any bell assigned to it
+  // sounds twice per cycle and stops the sequence alternating. Silence during a hold is
+  // unambiguous — the next bell says which way to breathe.
   bell: {
     breatheIn: sounds.cueBell1,
     breatheOut: sounds.cueBell2,
-    hold: sounds.cueBell1,
+    hold: undefined,
   },
   disabled: {
     breatheIn: undefined,
@@ -50,8 +51,10 @@ const guidedBreathingAudioAssets: GuidedBreathingAudioSounds = {
   },
 };
 
+// Partial: a mode may cue only some steps. Bell cues the two direction changes and leaves
+// the holds silent; `disabled` cues nothing at all.
 type CurrentGuidedBreathingSounds = {
-  [key in GuidedBreathingStep]: AudioPlayer;
+  [key in GuidedBreathingStep]?: AudioPlayer;
 };
 
 let currentGuidedBreathingSounds: CurrentGuidedBreathingSounds | undefined;
@@ -73,9 +76,9 @@ const disposeCurrentAudio = async () => {
   endingBellSound = undefined;
 
   bellSound?.remove();
-  guidedBreathingSounds?.breatheIn.remove();
-  guidedBreathingSounds?.breatheOut.remove();
-  guidedBreathingSounds?.hold.remove();
+  guidedBreathingSounds?.breatheIn?.remove();
+  guidedBreathingSounds?.breatheOut?.remove();
+  guidedBreathingSounds?.hold?.remove();
 };
 
 const prepareAudioSource = async (source: AudioSource): Promise<AudioSource> => {
@@ -114,14 +117,13 @@ export function setupGuidedBreathingAudio(guidedBreathingMode: GuidedBreathingMo
     if (audioGeneration !== requestedAudioGeneration) return;
 
     endingBellSound = createAudioPlayer(endingBellSource);
-    // Modes without step cues (e.g. "disabled") keep only the ending bell.
-    if (breatheInSource != null && breatheOutSource != null && holdSource != null) {
-      currentGuidedBreathingSounds = {
-        breatheIn: createAudioPlayer(breatheInSource),
-        breatheOut: createAudioPlayer(breatheOutSource),
-        hold: createAudioPlayer(holdSource),
-      };
-    }
+    // Each cue is built on its own, so a mode can cue some steps and not others. A mode with
+    // no cues at all (e.g. "disabled") keeps only the ending bell.
+    const stepPlayers: CurrentGuidedBreathingSounds = {};
+    if (breatheInSource != null) stepPlayers.breatheIn = createAudioPlayer(breatheInSource);
+    if (breatheOutSource != null) stepPlayers.breatheOut = createAudioPlayer(breatheOutSource);
+    if (holdSource != null) stepPlayers.hold = createAudioPlayer(holdSource);
+    if (Object.keys(stepPlayers).length > 0) currentGuidedBreathingSounds = stepPlayers;
   });
 }
 
@@ -132,9 +134,9 @@ export const releaseGuidedBreathingAudio = () => {
 
 export const stopGuidedBreathingAudio = () => {
   endingBellSound?.pause();
-  currentGuidedBreathingSounds?.breatheIn.pause();
-  currentGuidedBreathingSounds?.breatheOut.pause();
-  currentGuidedBreathingSounds?.hold.pause();
+  currentGuidedBreathingSounds?.breatheIn?.pause();
+  currentGuidedBreathingSounds?.breatheOut?.pause();
+  currentGuidedBreathingSounds?.hold?.pause();
 };
 
 export const playGuidedBreathingSound = async (guidedBreathingStep: GuidedBreathingStep) => {

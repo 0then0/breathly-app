@@ -1,6 +1,6 @@
 import * as Font from "expo-font";
 import React, { FC, useEffect } from "react";
-import { Platform, UIManager, View, LayoutAnimation } from "react-native";
+import { Appearance, Platform, UIManager, View, LayoutAnimation } from "react-native";
 import { fonts as fontAssets } from "@breathly/assets/fonts";
 import { Navigator } from "@breathly/core/navigator";
 import { useHydration, useSettingsStore } from "@breathly/stores/settings";
@@ -39,6 +39,17 @@ const Main: FC = () => {
   const hydrated = useHydration();
   useStickyImmersiveReset();
   useThemedStatusBar();
+
+  // Native views take their colours from the system appearance, not from the app's own
+  // theme: the iOS large title and the picker wheel are UIKit, and they stayed in light mode
+  // when the user turned "Use system theme" off and chose Dark — a dark title on a dark
+  // background. Overriding the app's appearance is what makes every native view follow the
+  // chosen theme, rather than patching each one by hand. "unspecified" hands control back to
+  // the system. It changes the app's appearance only, never the system's.
+  useEffect(() => {
+    if (!hydrated) return;
+    Appearance.setColorScheme(shouldFollowSystemDarkMode ? "unspecified" : theme);
+  }, [hydrated, shouldFollowSystemDarkMode, theme]);
 
   // Animate the layout when the stored theme arrives, and on every later change.
   // The color scheme itself now comes from the settings store, through

@@ -29,15 +29,15 @@ import {
 const Section: React.FC<PropsWithChildren<SectionProps>> = ({
   label,
   children,
-  hideBottomBorder,
+  hideBottomBorderWeb,
 }) => {
   const isDarkMode = useColorScheme() === "dark";
   return (
     <View
       style={[
         styles.section,
-        !hideBottomBorder && styles.sectionBorder,
-        !hideBottomBorder && isDarkMode && styles.sectionBorderDark,
+        !hideBottomBorderWeb && styles.sectionBorder,
+        !hideBottomBorderWeb && isDarkMode && styles.sectionBorderDark,
       ]}
     >
       <View style={styles.sectionBody}>

@@ -18,6 +18,7 @@ import {
   type Theme,
 } from "@breathly/stores/settings-state";
 import { GuidedBreathingMode } from "@breathly/types/guided-breathing-mode";
+import { delay } from "@breathly/utils/delay";
 
 interface SettingsStore extends PersistedSettingsState {
   setCustomPatternEnabled: (enabled: boolean) => unknown;
@@ -31,6 +32,8 @@ interface SettingsStore extends PersistedSettingsState {
   setVibrationEnabled: (vibrationEnabled: boolean) => unknown;
 }
 
+const readRetryDelayMs = 50;
+
 // An unreadable or damaged payload must never stop hydration. Zustand leaves `hasHydrated`
 // false when the read rejects, `useHydration` then never turns true, and the app renders an
 // empty view on every launch — with no way back, because the app has no network. Both
@@ -39,10 +42,12 @@ interface SettingsStore extends PersistedSettingsState {
 const settingsStorage: PersistStorage<SettingsStore> = {
   getItem: async (name) => {
     // Falling back to the defaults means the next settings change overwrites whatever is on
-    // disk. A transient failure — a locked database, say — would then cost the user their
-    // real settings, so give the read a second chance before giving up on it.
+    // disk. A transient failure — a briefly locked database, say — would then cost the user
+    // their real settings, so give the read a second chance, after a pause long enough for
+    // the lock to clear. Back to back the retry would only survive a bridge hiccup.
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
+        if (attempt > 0) await delay(readRetryDelayMs);
         const storedValue = await AsyncStorage.getItem(name);
         if (storedValue == null) return null;
         return JSON.parse(storedValue) as StorageValue<SettingsStore>;

@@ -116,20 +116,37 @@ describe("guided breathing audio", () => {
     expect(mockPlayers[1]!.play).toHaveBeenCalledTimes(1);
   });
 
-  it("gives the bell mode a different sound for the inhale and the exhale", async () => {
+  it("cues only the direction changes in the bell mode, with a different sound each way", async () => {
     await setupGuidedBreathingAudio("bell");
 
-    // Player order follows the setup: ending bell, inhale, exhale, hold.
-    const [, breatheIn, breatheOut, hold] = mockPlayers;
+    // Ending bell, inhale, exhale. No hold cue: `buildStepsMetadata` gives the id `hold` to
+    // both the step after the inhale and the step after the exhale, so a bell there would
+    // sound twice a cycle and break the alternation — on Square, the default pattern, that
+    // produced three identical bells in a row.
+    expect(mockPlayers).toHaveLength(3);
 
-    // The bell mode is used with the eyes closed, so the two directions must not
-    // sound the same.
+    const [, breatheIn, breatheOut] = mockPlayers;
     expect(breatheIn!.source).not.toEqual(breatheOut!.source);
     expect(breatheIn!.source).toEqual({ assetId: 8, uri: "file:///audio/8.mp3" });
     expect(breatheOut!.source).toEqual({ assetId: 9, uri: "file:///audio/9.mp3" });
-    // Patterns without a hold step must still reach both bells, so the hold reuses
-    // the inhale bell rather than owning a third sound.
-    expect(hold!.source).toEqual(breatheIn!.source);
+
+    // A hold cue must be silent rather than reuse a direction bell.
+    await expect(playGuidedBreathingSound("hold")).resolves.toBeUndefined();
+    expect(breatheIn!.play).not.toHaveBeenCalled();
+    expect(breatheOut!.play).not.toHaveBeenCalled();
+  });
+
+  it("alternates the bells across a full square cycle", async () => {
+    await setupGuidedBreathingAudio("bell");
+    const [, breatheIn, breatheOut] = mockPlayers;
+
+    // Square is the default pattern: inhale, hold, exhale, hold — then it loops.
+    for (const step of ["breatheIn", "hold", "breatheOut", "hold", "breatheIn"] as const) {
+      await playGuidedBreathingSound(step);
+    }
+
+    expect(breatheIn!.play).toHaveBeenCalledTimes(2);
+    expect(breatheOut!.play).toHaveBeenCalledTimes(1);
   });
 
   it("creates only the ending bell player for the disabled mode", async () => {

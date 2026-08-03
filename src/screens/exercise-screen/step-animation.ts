@@ -25,22 +25,21 @@ export const createStepAnimation = ({
   durationMs,
 }: StepAnimationOptions): Animated.CompositeAnimation => {
   const textAnimDurationMs = getTextAnimDurationMs(durationMs);
+  // `stopTogether` stays at its default. The ratio above already keeps the two fades inside
+  // the step, so nothing interrupts the circle and the flag has no work to do — but it would
+  // make an interrupted circle report `finished: true`, and `loopAnimations` would then step
+  // on forever with a frozen circle instead of stopping. A loud failure is the right one here.
   return Animated.stagger(Math.max(0, durationMs - textAnimDurationMs), [
-    Animated.parallel(
-      [
-        animate(exerciseAnimVal, {
-          toValue: toValue,
-          duration: durationMs,
-        }),
-        animate(textAnimVal, {
-          toValue: 1,
-          duration: textAnimDurationMs,
-        }),
-      ],
-      // The breathing circle carries the rhythm of the exercise: it must
-      // continue even if the label animation stops.
-      { stopTogether: false },
-    ),
+    Animated.parallel([
+      animate(exerciseAnimVal, {
+        toValue: toValue,
+        duration: durationMs,
+      }),
+      animate(textAnimVal, {
+        toValue: 1,
+        duration: textAnimDurationMs,
+      }),
+    ]),
     animate(textAnimVal, {
       toValue: 0,
       duration: textAnimDurationMs,

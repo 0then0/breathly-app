@@ -3,7 +3,9 @@ import type { PropsWithChildren } from "react";
 
 export interface SectionProps {
   label: string;
-  hideBottomBorder?: boolean;
+  // Web only. iOS and Android ignore it — they draw their own section separators. The name
+  // carries the platform because a TypeScript contract cannot make the other two obey it.
+  hideBottomBorderWeb?: boolean;
 }
 
 interface CommonItemProps {

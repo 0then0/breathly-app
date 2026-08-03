@@ -10,8 +10,11 @@ export const defaultEasing = Easing.inOut(Easing.quad);
 export const animate = (value: Animated.Value, config: Partial<Animated.TimingAnimationConfig>) => {
   return Animated.timing(value, {
     toValue: config.toValue!,
-    easing: defaultEasing,
     ...config,
+    // Below the spread, but coalesced rather than assigned: a caller that passes an easing
+    // keeps it, and one that passes an explicit `undefined` still gets the app's curve
+    // instead of React Native's own default.
+    easing: config.easing ?? defaultEasing,
     useNativeDriver: true,
   });
 };
