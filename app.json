@@ -72,8 +72,6 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/splash.png",
-          "resizeMode": "cover",
           "backgroundColor": "#F2F2F1",
           "android": {
             "drawable": {
