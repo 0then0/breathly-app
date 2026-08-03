@@ -33,7 +33,7 @@ export const EntryPoint: FC = () => {
 // Initializes the app state and, once done, hides the splash screen and shows
 // the AppRouter
 const Main: FC = () => {
-  const [areFontsLoaded] = Font.useFonts(fontAssets);
+  const [areFontsLoaded, fontLoadError] = Font.useFonts(fontAssets);
   const theme = useSettingsStore((state) => state.theme);
   const shouldFollowSystemDarkMode = useSettingsStore((state) => state.shouldFollowSystemDarkMode);
   const hydrated = useHydration();
@@ -49,7 +49,10 @@ const Main: FC = () => {
     }
   }, [hydrated, shouldFollowSystemDarkMode, theme]);
 
-  if (!hydrated || !areFontsLoaded) {
+  // `useFonts` keeps `loaded` false for ever once a load fails, so waiting on it alone would
+  // hold the app on an empty view with no way out. A missing typeface only costs the custom
+  // face; carry on with the system one.
+  if (!hydrated || (!areFontsLoaded && !fontLoadError)) {
     return <View />;
   }
 

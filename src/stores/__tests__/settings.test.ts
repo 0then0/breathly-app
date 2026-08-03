@@ -1,0 +1,76 @@
+const mockGetItem = jest.fn();
+const mockSetItem = jest.fn();
+const mockRemoveItem = jest.fn();
+
+jest.mock("@react-native-async-storage/async-storage", () => ({
+  __esModule: true,
+  default: {
+    getItem: (name: string) => mockGetItem(name),
+    setItem: (name: string, value: string) => mockSetItem(name, value),
+    removeItem: (name: string) => mockRemoveItem(name),
+  },
+}));
+
+import { defaultSettingsState } from "../settings-state";
+
+// The store starts hydrating the moment the module loads, so each case configures the
+// storage first and then loads a fresh copy of the store.
+const loadSettingsStore = async () => {
+  jest.resetModules();
+  const { useSettingsStore } = require("../settings") as typeof import("../settings");
+  await useSettingsStore.persist.rehydrate();
+  return useSettingsStore;
+};
+
+const storedSettings = (overrides: Record<string, unknown>) =>
+  JSON.stringify({ state: { ...defaultSettingsState, ...overrides }, version: 0 });
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockSetItem.mockResolvedValue(undefined);
+  mockRemoveItem.mockResolvedValue(undefined);
+});
+
+describe("settings persistence", () => {
+  it("finishes hydration on the defaults when the stored payload cannot be read", async () => {
+    mockGetItem.mockRejectedValue(new Error("storage unavailable"));
+
+    const useSettingsStore = await loadSettingsStore();
+
+    // Hydration must complete. If it does not, `useHydration` never turns true and the app
+    // shows an empty view on every launch.
+    expect(useSettingsStore.persist.hasHydrated()).toBe(true);
+    expect(useSettingsStore.getState().theme).toBe(defaultSettingsState.theme);
+  });
+
+  it("finishes hydration on the defaults when the stored payload is damaged", async () => {
+    // A write cut short by a process kill leaves incomplete JSON behind.
+    mockGetItem.mockResolvedValue('{"state":{"theme":"dar');
+
+    const useSettingsStore = await loadSettingsStore();
+
+    expect(useSettingsStore.persist.hasHydrated()).toBe(true);
+    expect(useSettingsStore.getState().theme).toBe(defaultSettingsState.theme);
+  });
+
+  it("restores stored settings and keeps the store actions", async () => {
+    mockGetItem.mockResolvedValue(storedSettings({ theme: "dark", vibrationEnabled: false }));
+
+    const useSettingsStore = await loadSettingsStore();
+
+    expect(useSettingsStore.persist.hasHydrated()).toBe(true);
+    expect(useSettingsStore.getState().theme).toBe("dark");
+    expect(useSettingsStore.getState().vibrationEnabled).toBe(false);
+    expect(typeof useSettingsStore.getState().setTheme).toBe("function");
+  });
+
+  it("repairs an out-of-range stored value instead of failing", async () => {
+    mockGetItem.mockResolvedValue(storedSettings({ theme: "sepia", timeLimit: -1 }));
+
+    const useSettingsStore = await loadSettingsStore();
+
+    expect(useSettingsStore.persist.hasHydrated()).toBe(true);
+    expect(useSettingsStore.getState().theme).toBe("light");
+    expect(useSettingsStore.getState().timeLimit).toBe(0);
+  });
+});
