@@ -3,6 +3,7 @@ import { Animated, AppState, StyleSheet } from "react-native";
 import { colors } from "@breathly/design/colors";
 import { useColorScheme } from "@breathly/design/theme";
 import { fontSizes } from "@breathly/design/typography";
+import { announceForScreenReader } from "@breathly/screens/exercise-screen/accessibility-announcements";
 import {
   getActiveTickDeltaMs,
   getSessionNowMs,
@@ -22,6 +23,7 @@ const timerRefreshIntervalMs = 250;
 const maximumActiveTickGapMs = timerRefreshIntervalMs * 4;
 const showAnimDuration = 500;
 const hideAnimDuration = 400;
+export const lastBreathLabel = "Last breath";
 
 export const Timer: FC<Props> = ({
   limit,
@@ -35,13 +37,14 @@ export const Timer: FC<Props> = ({
   const previousTickAtMs = useRef(getSessionNowMs());
   const opacityAnimVal = useRef(new Animated.Value(0)).current;
   const limitReachedRef = useRef(false);
+  const [lastBreathVisible, setLastBreathVisible] = useState(false);
 
   useInterval(() => {
     const currentTickAtMs = getSessionNowMs();
     const activeTickDeltaMs = getActiveTickDeltaMs(
       previousTickAtMs.current,
       currentTickAtMs,
-      AppState.currentState === "active",
+      AppState.currentState !== "background",
       maximumActiveTickGapMs,
     );
     previousTickAtMs.current = currentTickAtMs;
@@ -58,17 +61,41 @@ export const Timer: FC<Props> = ({
   const remainingTimeMs = limit ? Math.max(0, limit - elapsedTimeMs) : undefined;
   const limitReached = remainingTimeMs === 0;
 
-  // The exercise continues until the end of the current exhale, thus the timer
-  // stays at 00:00 for some seconds. It fades away instead: the clock is
-  // complete, and only the last breath remains.
+  // The exercise continues until the end of the current exhale, thus the clock
+  // stays at 00:00 for some seconds. The clock is complete and only the last
+  // breath remains: the timer crossfades to that message. It must not fade
+  // away, because a blank screen tells the user nothing about the time that the
+  // exercise still needs.
   useEffect(() => {
-    const containerAnimation = animate(opacityAnimVal, {
-      toValue: limitReached ? 0 : 1,
-      duration: limitReached ? hideAnimDuration : showAnimDuration,
+    if (!limitReached) {
+      const showAnimation = animate(opacityAnimVal, {
+        toValue: 1,
+        duration: showAnimDuration,
+      });
+      showAnimation.start();
+      return () => {
+        showAnimation.stop();
+      };
+    }
+    const hideAnimation = animate(opacityAnimVal, {
+      toValue: 0,
+      duration: hideAnimDuration,
     });
-    containerAnimation.start();
+    const showAnimation = animate(opacityAnimVal, {
+      toValue: 1,
+      duration: showAnimDuration,
+    });
+    hideAnimation.start(({ finished }) => {
+      if (!finished) return;
+      setLastBreathVisible(true);
+      // The clock is not a live region: it changes every second, and a live
+      // region would read every change.
+      announceForScreenReader(lastBreathLabel);
+      showAnimation.start();
+    });
     return () => {
-      containerAnimation.stop();
+      hideAnimation.stop();
+      showAnimation.stop();
     };
   }, [limitReached, opacityAnimVal]);
 
@@ -83,19 +110,14 @@ export const Timer: FC<Props> = ({
     opacity: opacityAnimVal,
   };
 
-  const timerText =
+  const clockText =
     remainingTimeMs == null
       ? formatTimer(Math.floor(elapsedTimeMs / 1000))
       : formatTimer(Math.ceil(remainingTimeMs / 1000));
+  const timerText = lastBreathVisible ? lastBreathLabel : clockText;
 
   return (
-    <Animated.View
-      style={[styles.container, containerAnimatedStyle]}
-      // The exercise continues after the timer fades away. Keep the invisible
-      // 00:00 out of the accessibility tree while the last breath continues.
-      accessibilityElementsHidden={limitReached}
-      importantForAccessibility={limitReached ? "no-hide-descendants" : "auto"}
-    >
+    <Animated.View style={[styles.container, containerAnimatedStyle]}>
       <Animated.Text
         style={[styles.timerText, isDarkMode && styles.timerTextDark]}
         testID="exercise.timer"

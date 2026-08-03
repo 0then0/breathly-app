@@ -4,6 +4,7 @@ import React, { FC } from "react";
 import { Animated, ScrollView, LayoutAnimation, Button, Platform, StyleSheet } from "react-native";
 import { patternPresets } from "@breathly/assets/pattern-presets";
 import { SettingsStackParamList } from "@breathly/core/navigator";
+import { useColorScheme } from "@breathly/design/theme";
 import { SettingsUI } from "@breathly/screens/settings-screen/settings-ui";
 import {
   useSelectedPatternSteps,
@@ -33,6 +34,7 @@ export const SettingsRootScreen: FC<
     (state) => state.setShouldFollowSystemDarkMode,
   );
   const theme = useSettingsStore((state) => state.theme);
+  const resolvedColorScheme = useColorScheme();
   const setTheme = useSettingsStore((state) => state.setTheme);
   const vibrationEnabled = useSettingsStore((state) => state.vibrationEnabled);
   const setVibrationEnabled = useSettingsStore((state) => state.setVibrationEnabled);
@@ -97,7 +99,13 @@ export const SettingsRootScreen: FC<
               iconName="moon"
               iconBackgroundColor="#a5b4fc"
               value={shouldFollowSystemDarkMode}
-              onValueChange={setShouldFollowSystemDarkMode}
+              onValueChange={(shouldFollow) => {
+                // Turning this off must keep the appearance the user is looking at. The
+                // stored theme defaults to "light", so a user on a dark phone who switched
+                // this off to *keep* dark was flipped to light in front of them.
+                if (!shouldFollow) setTheme(resolvedColorScheme);
+                setShouldFollowSystemDarkMode(shouldFollow);
+              }}
               testID="settings.system-theme"
             />
             {!shouldFollowSystemDarkMode && (
@@ -126,7 +134,7 @@ export const SettingsRootScreen: FC<
               testID="settings.vibration"
             />
           </SettingsUI.Section>
-          <SettingsUI.Section label="Timer" hideBottomBorderAndroid>
+          <SettingsUI.Section label="Timer" hideBottomBorder>
             <SettingsUI.StepperItem
               label="Exercise timer"
               secondaryLabel="Time limit in minutes"
@@ -182,8 +190,13 @@ export const SettingsPatternPickerScreen: FC<
             />
             {customPatternEnabled &&
               customPatternDurations.map((stepValue, stepIndex) => {
-                const [lowerLimit, upperLimit] = customPatternDurationLimits[stepIndex];
-                const stepLabel = ["Inhale", "Hold", "Exhale", "Hold"][stepIndex];
+                const limits = customPatternDurationLimits[stepIndex];
+                if (!limits) return null;
+
+                const [lowerLimit, upperLimit] = limits;
+                const stepLabel = ["Inhale", "Hold after inhale", "Exhale", "Hold after exhale"][
+                  stepIndex
+                ];
                 return (
                   <SettingsUI.StepperItem
                     key={stepIndex}
@@ -204,7 +217,7 @@ export const SettingsPatternPickerScreen: FC<
                 );
               })}
           </SettingsUI.Section>
-          <SettingsUI.Section label="Pattern presets" hideBottomBorderAndroid>
+          <SettingsUI.Section label="Pattern presets" hideBottomBorder>
             {patternPresets.map((patternPreset) => {
               return (
                 <SettingsUI.RadioButtonItem

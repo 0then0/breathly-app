@@ -38,27 +38,43 @@ interface SettingsStore extends PersistedSettingsState {
 // let the store start from its defaults.
 const settingsStorage: PersistStorage<SettingsStore> = {
   getItem: async (name) => {
-    try {
-      const storedValue = await AsyncStorage.getItem(name);
-      if (storedValue == null) return null;
-      return JSON.parse(storedValue) as StorageValue<SettingsStore>;
-    } catch {
-      return null;
+    // Falling back to the defaults means the next settings change overwrites whatever is on
+    // disk. A transient failure — a locked database, say — would then cost the user their
+    // real settings, so give the read a second chance before giving up on it.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const storedValue = await AsyncStorage.getItem(name);
+        if (storedValue == null) return null;
+        return JSON.parse(storedValue) as StorageValue<SettingsStore>;
+      } catch (error) {
+        // Damaged text will not parse on a retry either. Only a failed read is worth repeating.
+        if (error instanceof SyntaxError) {
+          console.warn("[settings] discarding a damaged settings payload", error);
+          return null;
+        }
+        if (attempt === 1) {
+          console.warn("[settings] could not read the stored settings", error);
+          return null;
+        }
+      }
     }
+    return null;
   },
   setItem: async (name, value) => {
     try {
       await AsyncStorage.setItem(name, JSON.stringify(value));
-    } catch {
+    } catch (error) {
       // A failed write costs the user one setting. Rejecting would only add an unhandled
-      // rejection on top, and would not bring the value back.
+      // rejection on top, and would not bring the value back. Leave a trace instead: the app
+      // is offline, so a log is the only channel there is.
+      console.warn("[settings] could not save the settings", error);
     }
   },
   removeItem: async (name) => {
     try {
       await AsyncStorage.removeItem(name);
-    } catch {
-      // Same reasoning as `setItem`.
+    } catch (error) {
+      console.warn("[settings] could not clear the stored settings", error);
     }
   },
 };

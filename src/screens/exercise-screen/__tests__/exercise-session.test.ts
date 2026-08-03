@@ -30,11 +30,39 @@ describe("exercise session lifecycle", () => {
     expect(resumed).toMatchObject({ status: "running", activeElapsedMs: 5_000 });
   });
 
-  it("counts normal active heartbeats but discards suspension-sized gaps", () => {
+  it("counts normal heartbeats of the foreground", () => {
     expect(getActiveTickDeltaMs(1_000, 1_250, true, 1_000)).toBe(250);
-    expect(getActiveTickDeltaMs(1_000, 11_000, true, 1_000)).toBe(0);
+    expect(getActiveTickDeltaMs(1_000, 2_000, true, 1_000)).toBe(1_000);
+  });
+
+  it("counts no time in the background and no time that goes backwards", () => {
     expect(getActiveTickDeltaMs(1_000, 1_250, false, 1_000)).toBe(0);
     expect(getActiveTickDeltaMs(2_000, 1_000, true, 1_000)).toBe(0);
+  });
+
+  // A gap longer than the maximum comes from a stall of the JavaScript thread.
+  // The time of the stall must not disappear from the session: a slow device
+  // stalls many times, and the session then runs past the selected time limit.
+  it("limits a long gap but keeps the time that it can confirm", () => {
+    expect(getActiveTickDeltaMs(1_000, 11_000, true, 1_000)).toBe(1_000);
+    expect(getActiveTickDeltaMs(1_000, 1_001_000, true, 1_000)).toBe(1_000);
+  });
+
+  // A discarded gap counts 750 ms of these 8_750 ms, thus the session of the
+  // user runs 8 seconds longer than the selected time limit.
+  it("counts the limited part of every stall instead of nothing", () => {
+    const maximumGapMs = 1_000;
+    const stallsMs = [250, 3_000, 250, 5_000, 250];
+    let clockMs = 0;
+    let elapsedMs = 0;
+
+    stallsMs.forEach((stallMs) => {
+      elapsedMs += getActiveTickDeltaMs(clockMs, clockMs + stallMs, true, maximumGapMs);
+      clockMs += stallMs;
+    });
+
+    expect(clockMs).toBe(8_750);
+    expect(elapsedMs).toBe(2_750);
   });
 
   it("restarts the interlude when it was interrupted before the exercise began", () => {

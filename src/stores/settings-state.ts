@@ -1,8 +1,9 @@
 import ms from "ms";
 import { patternPresets } from "@breathly/assets/pattern-presets";
 import { GuidedBreathingMode } from "@breathly/types/guided-breathing-mode";
+import type { PatternSteps } from "@breathly/types/pattern-preset";
 
-export type CustomPatternSteps = [number, number, number, number];
+export type CustomPatternSteps = PatternSteps;
 export type Theme = "dark" | "light";
 
 export interface PersistedSettingsState {
@@ -60,7 +61,7 @@ export const setCustomPatternStepValue = (
     stepValue,
     limits[0],
     limits[1],
-    defaultSettingsState.customPatternSteps[stepIndex],
+    defaultSettingsState.customPatternSteps[stepIndex] ?? limits[0],
   );
   return nextSteps;
 };
@@ -73,12 +74,12 @@ export const normalizePersistedSettingsState = (value: unknown): PersistedSettin
   const candidateSteps = Array.isArray(candidate.customPatternSteps)
     ? candidate.customPatternSteps
     : [];
-  const customPatternSteps = defaultSettingsState.customPatternSteps.map((fallback, index) =>
+  const customPatternSteps = customPatternDurationLimits.map(([minimum, maximum], index) =>
     clampFiniteNumber(
       candidateSteps[index],
-      customPatternDurationLimits[index][0],
-      customPatternDurationLimits[index][1],
-      fallback,
+      minimum,
+      maximum,
+      defaultSettingsState.customPatternSteps[index] ?? minimum,
     ),
   ) as CustomPatternSteps;
   const selectedPatternPresetId = patternPresets.some(

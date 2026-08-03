@@ -1,6 +1,6 @@
 import * as SplashScreen from "expo-splash-screen";
 import React, { PropsWithChildren, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, Platform, StyleSheet, View } from "react-native";
+import { Animated, Easing, Platform, StyleSheet, useColorScheme, View } from "react-native";
 import {
   getRemainingSplashDurationMs,
   maximumSplashWaitMs,
@@ -12,9 +12,18 @@ if (Platform.OS !== "web") {
   void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 }
 
-const splashImageAsset = require("../../assets/splash.png");
+// The same two assets the native splash uses, so the hand-off from the launch screen to
+// this overlay draws exactly the same thing.
+const splashImageAssets = {
+  light: require("../../assets/splash.png"),
+  dark: require("../../assets/splash-dark.png"),
+};
 
-const splashBackgroundColor = "#F2F2F1";
+// Keep these in step with the `expo-splash-screen` plugin config in `app.json`.
+const splashBackgroundColors = {
+  light: "#F2F2F1",
+  dark: "#0f172a",
+};
 
 export const SplashScreenManager: React.FC<PropsWithChildren> = ({ children }) => {
   if (Platform.OS === "web") return <>{children}</>;
@@ -22,6 +31,10 @@ export const SplashScreenManager: React.FC<PropsWithChildren> = ({ children }) =
 };
 
 const NativeSplashScreenManager: React.FC<PropsWithChildren> = ({ children }) => {
+  // The *system* appearance, not the app's resolved theme. The native launch screen can only
+  // follow the system, and the settings store has not hydrated yet at this point, so reading
+  // anything else here would make the two layers disagree.
+  const systemColorScheme = useColorScheme() === "dark" ? "dark" : "light";
   const mountedAtMs = useRef(Date.now()).current;
   const opacity = useMemo(() => new Animated.Value(1), []);
   const isHomeScreenReady = useHomeScreenStatusStore((state) => state.isHomeScreenReady);
@@ -79,13 +92,16 @@ const NativeSplashScreenManager: React.FC<PropsWithChildren> = ({ children }) =>
       {!isSplashComplete && (
         <Animated.View
           pointerEvents="none"
-          style={[styles.overlay, { opacity }]}
+          style={[
+            styles.overlay,
+            { opacity, backgroundColor: splashBackgroundColors[systemColorScheme] },
+          ]}
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
         >
           <Animated.Image
             style={styles.image}
-            source={splashImageAsset}
+            source={splashImageAssets[systemColorScheme]}
             resizeMode="cover"
             onLoadEnd={handleOverlaySettled}
             fadeDuration={0}
@@ -106,7 +122,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     left: 0,
-    backgroundColor: splashBackgroundColor,
   },
   image: {
     width: "100%",

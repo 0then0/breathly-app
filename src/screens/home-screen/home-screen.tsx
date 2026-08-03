@@ -6,7 +6,7 @@ import { create } from "zustand";
 import { Pressable } from "@breathly/common/pressable";
 import { RootStackParamList } from "@breathly/core/navigator";
 import { colors } from "@breathly/design/colors";
-import { useColorScheme } from "@breathly/design/theme";
+import { useColorScheme, useThemeColors } from "@breathly/design/theme";
 import { fontFamilies, fontSizes } from "@breathly/design/typography";
 import { PlanetsBackground } from "@breathly/screens/home-screen/planets-background";
 import { StarsBackground } from "@breathly/screens/home-screen/stars-background";
@@ -23,6 +23,7 @@ export const HomeScreen: FC<NativeStackScreenProps<RootStackParamList, "Home">> 
   navigation,
 }) => {
   const colorScheme = useColorScheme();
+  const theme = useThemeColors();
   const { isHomeScreenReady, markHomeScreenAsReady } = useHomeScreenStatusStore();
   const insets = useSafeAreaInsets();
   const handleStartButtonPress = () => {
@@ -71,7 +72,7 @@ export const HomeScreen: FC<NativeStackScreenProps<RootStackParamList, "Home">> 
         <Animated.Text style={[styles.title, colorScheme === "dark" && styles.titleDark]}>
           Breathly
         </Animated.Text>
-        <Animated.Text style={styles.tagline}>
+        <Animated.Text style={[styles.tagline, { color: theme.textSecondary }]}>
           Relax, focus on your breath, and find your inner peace.
         </Animated.Text>
       </View>
@@ -91,7 +92,7 @@ export const HomeScreen: FC<NativeStackScreenProps<RootStackParamList, "Home">> 
           Start a new session
         </Text>
       </Pressable>
-      <Animated.Text style={styles.separator}>or</Animated.Text>
+      <Animated.Text style={[styles.separator, { color: theme.textSecondary }]}>or</Animated.Text>
       <Pressable
         style={[styles.button, styles.customizeButton]}
         onPress={handleCustomizeButtonPress}
@@ -140,7 +141,6 @@ const styles = StyleSheet.create({
   },
   separator: {
     ...fontSizes.lg,
-    color: colors["slate-500"],
     fontFamily: fontFamilies.regular,
     fontWeight: "300",
     marginVertical: 8,
@@ -151,7 +151,6 @@ const styles = StyleSheet.create({
   },
   tagline: {
     ...fontSizes.lg,
-    color: colors["slate-500"],
     fontFamily: fontFamilies.regular,
     fontWeight: "300",
     marginBottom: 32,

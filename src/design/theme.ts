@@ -1,8 +1,9 @@
 import { useColorScheme as useSystemColorScheme } from "react-native";
 import { resolveColorScheme, type ColorScheme } from "@breathly/design/color-scheme";
+import { themeColors, type ThemeColors } from "@breathly/design/colors";
 import { useSettingsStore } from "@breathly/stores/settings";
 
-export { type ColorScheme };
+export { type ColorScheme, type ThemeColors };
 
 // The color scheme that the app renders with.
 //
@@ -15,3 +16,8 @@ export const useColorScheme = (): ColorScheme => {
   const theme = useSettingsStore((state) => state.theme);
   return resolveColorScheme(systemColorScheme, shouldFollowSystemDarkMode, theme);
 };
+
+// The colours for the scheme the app is rendering with. Prefer this over reaching into the
+// palette and writing a `*Dark` style beside every rule: a role that exists here cannot be
+// left without a dark value by accident.
+export const useThemeColors = (): ThemeColors => themeColors[useColorScheme()];

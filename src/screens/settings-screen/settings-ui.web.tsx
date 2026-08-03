@@ -23,20 +23,21 @@ import {
   StepperItemProps,
   SwitchItemProps,
   SectionProps,
-} from "./settings-ui";
+  type SettingsUIModule,
+} from "./settings-ui.types";
 
 const Section: React.FC<PropsWithChildren<SectionProps>> = ({
   label,
   children,
-  hideBottomBorderAndroid,
+  hideBottomBorder,
 }) => {
   const isDarkMode = useColorScheme() === "dark";
   return (
     <View
       style={[
         styles.section,
-        !hideBottomBorderAndroid && styles.sectionBorder,
-        !hideBottomBorderAndroid && isDarkMode && styles.sectionBorderDark,
+        !hideBottomBorder && styles.sectionBorder,
+        !hideBottomBorder && isDarkMode && styles.sectionBorderDark,
       ]}
     >
       <View style={styles.sectionBody}>
@@ -159,11 +160,21 @@ const RadioButtonItem: FC<RadioButtonItemProps> = ({
 };
 
 const PickerItem: FC<PickerItemProps> = ({ value, options, onValueChange, ...baseProps }) => {
+  // `label` names the field ("Voice"); each option carries its own label. Spreading the
+  // base props into the rows overwrote the first with the second, so the field name never
+  // reached the screen and the user saw a set of unnamed choices.
+  const { label: fieldLabel, ...optionProps } = baseProps;
+
   return (
     <>
+      {fieldLabel ? (
+        <Text style={styles.pickerLabel} accessibilityRole="header">
+          {fieldLabel}
+        </Text>
+      ) : null}
       {options.map((option) => (
         <RadioButtonItem
-          {...baseProps}
+          {...optionProps}
           onPress={() => onValueChange(option.value)}
           key={option.value}
           testID={baseProps.testID ? `${baseProps.testID}.option.${option.value}` : undefined}
@@ -275,6 +286,14 @@ const styles = StyleSheet.create({
     ...fontSizes.sm,
     color: colors["slate-500"],
   },
+  pickerLabel: {
+    ...fontSizes.sm,
+    color: colors["slate-600"],
+    fontFamily: fontFamilies.medium,
+    paddingBottom: 4,
+    paddingLeft: 72,
+    paddingTop: 8,
+  },
   radio: {
     alignItems: "center",
     borderRadius: 9999,
@@ -338,7 +357,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export const SettingsUI = {
+export const SettingsUI: SettingsUIModule = {
   Section,
   Header,
   LinkItem,

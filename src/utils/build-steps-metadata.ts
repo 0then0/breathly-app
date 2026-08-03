@@ -1,9 +1,10 @@
-import type { StepMetadata } from "../types/step-metadata";
+import type { PatternSteps } from "@breathly/types/pattern-preset";
+import type { StepMetadata } from "@breathly/types/step-metadata";
 
 // Given an array of durations (e.g.: [4, 4, 4, 4]) maps it to an array of
 // objects with the steps informations
 export const buildStepsMetadata = (
-  durations: number[],
+  durations: PatternSteps,
 ): [StepMetadata, StepMetadata, StepMetadata, StepMetadata] => [
   {
     id: "inhale",
