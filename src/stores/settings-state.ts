@@ -17,7 +17,14 @@ export interface PersistedSettingsState {
   vibrationEnabled: boolean;
 }
 
-export const customPatternDurationLimits: [number, number][] = [
+// A tuple, not an array: `normalizePersistedSettingsState` maps over this to build the four
+// steps, so its length is what guarantees the result really has four of them.
+export const customPatternDurationLimits: [
+  [number, number],
+  [number, number],
+  [number, number],
+  [number, number],
+] = [
   [ms("1 sec"), ms("99 sec")],
   [0, ms("99 sec")],
   [ms("1 sec"), ms("99 sec")],
