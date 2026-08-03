@@ -8,6 +8,28 @@ import { AccessibilityInfo, Platform } from "react-native";
 let lastKnownReduceMotionEnabled = false;
 let lastKnownScreenReaderEnabled = false;
 
+// Asked at module load rather than on first mount, so the answer is already in flight before
+// anything renders. The first consumer would otherwise draw a frame of the motion the user
+// asked the system to remove.
+const initialReduceMotionQuery: Promise<boolean> = AccessibilityInfo.isReduceMotionEnabled()
+  .then((enabled) => {
+    lastKnownReduceMotionEnabled = enabled;
+    return enabled;
+  })
+  .catch(() => false);
+
+// `react-native-web` answers "true" to this question in every browser, thus the app asks it
+// only on the two mobile platforms.
+const initialScreenReaderQuery: Promise<boolean> =
+  Platform.OS === "web"
+    ? Promise.resolve(false)
+    : AccessibilityInfo.isScreenReaderEnabled()
+        .then((enabled) => {
+          lastKnownScreenReaderEnabled = enabled;
+          return enabled;
+        })
+        .catch(() => false);
+
 // The exercise rotates and translates eight circles (sixteen in dark mode)
 // across the width of the screen for the whole session. That is the motion
 // profile that starts vestibular symptoms, thus the system setting must remove
@@ -18,14 +40,19 @@ export const useReduceMotion = () => {
 
   useEffect(() => {
     let active = true;
+    // A change event that lands while the initial query is still in flight is the fresher
+    // answer. Without this the stale one would win and, because the value is cached at
+    // module scope, poison every later mount in the process.
+    let answered = false;
     const applyAnswer = (enabled: boolean) => {
+      answered = true;
       lastKnownReduceMotionEnabled = enabled;
       if (active) setReduceMotionEnabled(enabled);
     };
 
-    AccessibilityInfo.isReduceMotionEnabled()
-      .then(applyAnswer)
-      .catch(() => undefined);
+    void initialReduceMotionQuery.then((enabled) => {
+      if (!answered) applyAnswer(enabled);
+    });
     const subscription = AccessibilityInfo.addEventListener("reduceMotionChanged", applyAnswer);
 
     return () => {
@@ -43,19 +70,19 @@ export const useScreenReaderEnabled = () => {
   const [screenReaderEnabled, setScreenReaderEnabled] = useState(lastKnownScreenReaderEnabled);
 
   useEffect(() => {
-    // `react-native-web` answers "true" to this question in every browser, thus
-    // the app asks it only on the two mobile platforms.
     if (Platform.OS === "web") return;
 
     let active = true;
+    let answered = false;
     const applyAnswer = (enabled: boolean) => {
+      answered = true;
       lastKnownScreenReaderEnabled = enabled;
       if (active) setScreenReaderEnabled(enabled);
     };
 
-    AccessibilityInfo.isScreenReaderEnabled()
-      .then(applyAnswer)
-      .catch(() => undefined);
+    void initialScreenReaderQuery.then((enabled) => {
+      if (!answered) applyAnswer(enabled);
+    });
     const subscription = AccessibilityInfo.addEventListener("screenReaderChanged", applyAnswer);
 
     return () => {

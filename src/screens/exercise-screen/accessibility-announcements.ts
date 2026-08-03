@@ -30,3 +30,5 @@ export const getInterludeAccessibilityLabel = (secondsLeft: number) =>
   `Starting session in ${secondsLeft}`;
 
 export const sessionCompleteAnnouncement = "Session complete";
+
+export const sessionPausedAnnouncement = "Session paused";

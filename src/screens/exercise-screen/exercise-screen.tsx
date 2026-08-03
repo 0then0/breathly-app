@@ -11,8 +11,10 @@ import { widestDeviceDimension } from "@breathly/design/metrics";
 import { useColorScheme, useThemeColors } from "@breathly/design/theme";
 import { fontFamilies, fontSizes } from "@breathly/design/typography";
 import {
+  announceForScreenReader,
   announceLiveRegionUpdate,
   getStepAccessibilityLabel,
+  sessionPausedAnnouncement,
 } from "@breathly/screens/exercise-screen/accessibility-announcements";
 import { AnimatedDots } from "@breathly/screens/exercise-screen/animated-dots";
 import {
@@ -65,11 +67,6 @@ export const ExerciseScreen: FC<NativeStackScreenProps<RootStackParamList, "Exer
   const colorScheme = useColorScheme();
   const theme = useThemeColors();
 
-  // The countdown, the paused screen and the completion screen need the screen
-  // awake as much as the exercise does: a screen that locks during the countdown
-  // pauses the session before it starts.
-  useKeepAwake();
-
   const { playExerciseStepAudio, playExerciseCompletedAudio, stopExerciseAudio } = useExerciseAudio(
     effectiveGuidedBreathingVoice,
   );
@@ -83,7 +80,14 @@ export const ExerciseScreen: FC<NativeStackScreenProps<RootStackParamList, "Exer
       if (nextAppState === "background") {
         stopExerciseAudio();
         dispatchSession({ type: "pause", activeElapsedMs: activeElapsedMs.current });
+        return;
       }
+
+      // Coming back, silence anything expo-audio resumed on its own. It pauses the players
+      // it interrupted and replays them afterwards, and the JS AppState event arrives after
+      // its native observers have already run — so a cue caught mid-word would otherwise
+      // finish in the middle of the wrong step, seconds or minutes later.
+      if (nextAppState === "active") stopExerciseAudio();
     });
 
     return () => subscription.remove();
@@ -151,6 +155,11 @@ export const ExerciseScreen: FC<NativeStackScreenProps<RootStackParamList, "Exer
         <ExercisePaused resumeStatus={session.resumeStatus} onResume={handleResume} />
       )}
       {session.status === "completed" && <ExerciseComplete />}
+      {/* The countdown and the paused screen need the display awake as much as the exercise
+          does — a screen that locks during the countdown pauses the session before it starts.
+          The completion screen does not: it never dismisses itself, so holding the display on
+          there would keep it lit until the user came back to the phone. */}
+      {session.status !== "completed" && <KeepDisplayAwake />}
       <View style={styles.closeButtonRow}>
         <Pressable
           style={[styles.closeButton, { borderColor: theme.control }]}
@@ -164,6 +173,12 @@ export const ExerciseScreen: FC<NativeStackScreenProps<RootStackParamList, "Exer
       </View>
     </View>
   );
+};
+
+// `useKeepAwake` releases on unmount, so mounting it conditionally is what scopes it.
+const KeepDisplayAwake: FC = () => {
+  useKeepAwake();
+  return null;
 };
 
 interface ExerciseRunningFragmentProps {
@@ -288,9 +303,21 @@ interface ExercisePausedProps {
 const ExercisePaused: FC<ExercisePausedProps> = ({ resumeStatus, onResume }) => {
   const isDarkMode = useColorScheme() === "dark";
   const theme = useThemeColors();
+
+  // The step announcements simply stop when the session pauses. Without this a screen-reader
+  // user is told nothing at all, and the completion screen already announces itself.
+  useEffect(() => {
+    announceForScreenReader(sessionPausedAnnouncement);
+  }, []);
+
   return (
     <View style={styles.pausedScreen} testID="exercise.paused">
-      <Text style={[styles.pausedTitle, isDarkMode && styles.pausedTitleDark]}>Paused</Text>
+      <Text
+        accessibilityRole="header"
+        style={[styles.pausedTitle, isDarkMode && styles.pausedTitleDark]}
+      >
+        Paused
+      </Text>
       <Text style={[styles.pausedDescription, { color: theme.textSecondary }]}>
         {resumeStatus === "interlude"
           ? "The starting countdown was interrupted."
