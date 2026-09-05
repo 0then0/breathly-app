@@ -128,6 +128,12 @@ describe("exercise step transitions", () => {
     expect(getExerciseStepTransition("afterExhale", "inhale", true)).toBe("complete");
   });
 
+  it("finishes a custom inhale-exhale pattern after its exhale", () => {
+    // A custom 12-0-12-0 pattern skips both holds, leaving inhale and exhale.
+    expect(getExerciseStepTransition("inhale", "exhale", true)).toBe("startStep");
+    expect(getExerciseStepTransition("exhale", "inhale", true)).toBe("complete");
+  });
+
   it("does not complete before every active step of the current cycle", () => {
     expect(getExerciseStepTransition("inhale", "afterInhale", true)).toBe("startStep");
     expect(getExerciseStepTransition("inhale", "exhale", true)).toBe("startStep");

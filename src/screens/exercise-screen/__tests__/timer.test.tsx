@@ -1,8 +1,8 @@
-import { act, render } from '@testing-library/react-native';
-import React from 'react';
-import { Timer } from '../timer';
+import { act, render } from "@testing-library/react-native";
+import React from "react";
+import { Timer } from "../timer";
 
-describe('Timer', () => {
+describe("Timer", () => {
   beforeEach(() => {
     jest.useFakeTimers();
   });
@@ -11,7 +11,7 @@ describe('Timer', () => {
     jest.useRealTimers();
   });
 
-  it('arms exercise completion in the tick that reaches the limit', async () => {
+  it("arms exercise completion in the tick that reaches the limit", async () => {
     const onLimitReached = jest.fn();
     const onActiveElapsedChange = jest.fn(() => {
       expect(onLimitReached).toHaveBeenCalledTimes(1);
@@ -34,7 +34,7 @@ describe('Timer', () => {
     expect(onActiveElapsedChange).toHaveBeenLastCalledWith(250);
   });
 
-  it('arms completion when it mounts after the limit', async () => {
+  it("arms completion when it mounts after the limit", async () => {
     const onLimitReached = jest.fn();
 
     await render(
@@ -53,7 +53,7 @@ describe('Timer', () => {
     expect(onLimitReached).toHaveBeenCalledTimes(1);
   });
 
-  it('does not arm completion when the timer is unlimited', async () => {
+  it("does not arm completion when the timer is unlimited", async () => {
     const onLimitReached = jest.fn();
 
     await render(
