@@ -1,5 +1,5 @@
 appId: com.mmazzarolo.breathly
-name: Exercise completes after the last exhale
+name: Exercise completes after the current breathing cycle
 ---
 - clearState
 - launchApp
@@ -31,9 +31,9 @@ name: Exercise completes after the last exhale
     visible:
       id: "exercise.running"
     timeout: 8000
-# The time limit does not stop the exercise immediately: the exercise continues
-# to the end of the current exhale. With the default pattern this adds a maximum
-# of twelve seconds to the minute of the time limit. The timeout is much longer,
+# The time limit does not stop the exercise immediately: the exercise completes
+# the current breathing cycle. With the default pattern this can add up to
+# seventeen seconds to the minute of the time limit. The timeout is much longer,
 # because a slow emulator makes the exercise clock run behind the real time.
 - extendedWaitUntil:
     visible:

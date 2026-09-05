@@ -218,8 +218,8 @@ const ExerciseRunningFragment: FC<ExerciseRunningFragmentProps> = ({
 
   // The time limit does not stop the exercise on its own: it only arms the
   // completion. The step transition below then stops the exercise at the end of
-  // the first step that leaves the lungs empty.
-  const timeLimitReachedRef = useRef(false);
+  // the current breathing-cycle iteration.
+  const timeLimitReachedRef = useRef(timeLimit > 0 && initialActiveElapsedMs >= timeLimit);
   const completionStartedRef = useRef(false);
 
   const startCompletion = () => {
