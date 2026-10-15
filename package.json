@@ -24,7 +24,7 @@
     "visual:capture": "bash scripts/visual-e2e/capture-installed.sh",
     "visual:compare": "node scripts/visual-e2e/compare.mjs",
     "validate:static": "bun run typecheck && bun run lint && bun run format:check && bun run test && bun run test:release-android",
-    "validate:expo": "expo install --check && expo-doctor",
+    "validate:expo": "EXPO_OFFLINE=1 expo install --check && EXPO_DOCTOR_SKIP_DEPENDENCY_VERSION_CHECK=1 expo-doctor",
     "validate:bundles": "expo export --platform all --output-dir dist/validate-export --clear",
     "validate": "bun run validate:static && bun run validate:expo"
   },

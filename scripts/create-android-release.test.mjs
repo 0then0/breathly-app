@@ -147,3 +147,36 @@ test("checks APK manifest and the approved signing certificate", () => {
     /certificate/,
   );
 });
+
+test("accepts platform-labelled certificates and Windows line endings from apksigner", () => {
+  for (const output of [
+    `Signer #1 certificate SHA-256 digest: ${fingerprint}\r\n`,
+    `Signer #1 certificate SHA-256 digest: ${fingerprint}  \n`,
+    signing + signing,
+    `Signer #1 certificate SHA-256 digest: ${fingerprint.match(/../g).join(":")}\n`,
+    `Signer (minSdkVersion=28, maxSdkVersion=2147483647) certificate SHA-256 digest: ${fingerprint}\n`,
+    `Signer (minSdkVersion=33 (dev release=true), maxSdkVersion=2147483647) certificate SHA-256 digest: ${fingerprint}\n`,
+  ])
+    verifyAndroidArtifact(badging, output, appConfig, "2", fingerprint);
+});
+
+test("rejects a different certificate on any supported Android version", () => {
+  const output =
+    signing +
+    `Signer (minSdkVersion=33, maxSdkVersion=2147483647) certificate SHA-256 digest: ${"b".repeat(64)}\n`;
+  assert.throws(
+    () => verifyAndroidArtifact(badging, output, appConfig, "2", fingerprint),
+    /certificate/,
+  );
+  assert.throws(
+    () =>
+      verifyAndroidArtifact(
+        badging,
+        `Source Stamp Signer certificate SHA-256 digest: ${fingerprint}\n`,
+        appConfig,
+        "2",
+        fingerprint,
+      ),
+    /certificate/,
+  );
+});

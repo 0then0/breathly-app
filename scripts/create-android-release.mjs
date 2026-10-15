@@ -101,14 +101,18 @@ export function verifyAndroidArtifact(badging, signing, appConfig, versionCode, 
   const normalize = (value) => value.replaceAll(":", "").toLowerCase();
   const expected = normalize(requireString(fingerprint, "approved signing certificate SHA-256"));
   const digests = [
-    ...signing.matchAll(/^Signer #\d+ certificate SHA-256 digest: ([a-fA-F0-9]+)$/gm),
+    ...signing.matchAll(
+      /^Signer[^\r\n]* certificate SHA-256 digest: ([a-fA-F0-9:]{64,95})[ \t]*\r?$/gm,
+    ),
   ];
   if (
     !/^[a-f0-9]{64}$/.test(expected) ||
-    digests.length !== 1 ||
-    normalize(digests[0][1]) !== expected
+    digests.length === 0 ||
+    digests.some((digest) => normalize(digest[1]) !== expected)
   ) {
-    throw new Error("APK signing certificate does not match the approved SHA-256");
+    throw new Error(
+      `APK signing certificate does not match the approved SHA-256 (parsed ${digests.length} certificate digests)`,
+    );
   }
 }
 
