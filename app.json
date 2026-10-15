@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Breathly",
-    "slug": "breathly",
-    "version": "2.2.0",
+    "name": "Breathly Beta",
+    "slug": "breathly-beta",
+    "version": "2.3.0-rc.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -34,16 +34,11 @@
         "backgroundColor": "#ffffff"
       },
       "icon": "./assets/icon.png",
-      "package": "com.mmazzarolo.breathly",
-      "versionCode": 3145750
+      "package": "app.breathly.beta",
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "8a2dbb83-3bcc-4d88-9d99-5fd3220273ea"
-      }
     },
     "experiments": {
       "reactCompiler": true
@@ -59,8 +54,8 @@
         "expo-build-properties",
         {
           "android": {
-            "enableProguardInReleaseBuilds": true,
-            "minSdkVersion": 26
+            "minSdkVersion": 26,
+            "enableMinifyInReleaseBuilds": true
           }
         }
       ],
@@ -90,6 +85,12 @@
         }
       ],
       "expo-asset"
-    ]
+    ],
+    "owner": "0then0",
+    "extra": {
+      "eas": {
+        "projectId": "5f3978c9-ac5b-4662-a9ce-3cfa0ca9c894"
+      }
+    }
   }
 }

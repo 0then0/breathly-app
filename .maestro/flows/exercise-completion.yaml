@@ -1,4 +1,4 @@
-appId: com.mmazzarolo.breathly
+appId: ${APP_ID}
 name: Exercise completes after the current breathing cycle
 ---
 - clearState

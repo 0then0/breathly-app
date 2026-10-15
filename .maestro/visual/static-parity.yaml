@@ -1,4 +1,4 @@
-appId: com.mmazzarolo.breathly
+appId: ${APP_ID}
 name: Cross-version static UI parity
 tags:
   - visual

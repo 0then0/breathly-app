@@ -49,16 +49,15 @@ I hope the source code will be useful to someone.
 
 ## Android APK releases
 
-Run the **Release Android APK** workflow from `master` to build and publish a signed Android APK and its
-SHA-256 checksum in GitHub Releases. The workflow creates the `android-<version>-(<versionCode>)` tag from
-the version code returned by EAS, so the tag always identifies the published APK.
+The **Release Android APK** workflow builds a signed APK and SHA-256 checksum from an explicitly
+approved `master` commit. Choose `prerelease` for an `-rc.N` version or `stable` for a stable version.
+It checks the EAS build commit and actual versionCode, verifies the APK package and signing
+certificate, and creates an `android-<version>-(<versionCode>)` tag on that exact commit.
 
-Before the first release, configure a protected GitHub Environment named `release`, add an `EXPO_TOKEN`
-environment secret that can access the configured EAS project, and require a reviewer for deployments.
-Run `eas build:version:set --platform android` to initialize EAS remote version management with a version
-code greater than every already distributed Breathly APK. Keep the EAS CLI version in `eas.json` and the
-workflow in sync when upgrading it. An APK signed with a different key cannot update an installed F-Droid
-version; uninstall that version before installing the GitHub APK.
+See [release preparation and approval requirements](releases/README.md) and the
+[2.3.0-rc.1 release notes](releases/2.3.0-rc.1.md). The Android beta uses the independent
+`app.breathly.beta` package and the approved `@0then0/breathly-beta` EAS project. Do not dispatch a cloud build before that decision,
+credential verification, successful validation and explicit build/publication approval.
 
 ## Resources and acknowledgements
 

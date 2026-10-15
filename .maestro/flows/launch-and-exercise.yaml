@@ -1,4 +1,4 @@
-appId: com.mmazzarolo.breathly
+appId: ${APP_ID}
 name: Launch and exercise smoke test
 ---
 - clearState
