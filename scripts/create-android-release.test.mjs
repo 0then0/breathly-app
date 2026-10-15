@@ -153,6 +153,7 @@ test("accepts platform-labelled certificates and Windows line endings from apksi
     `Signer #1 certificate SHA-256 digest: ${fingerprint}\r\n`,
     `Signer #1 certificate SHA-256 digest: ${fingerprint}  \n`,
     signing + signing,
+    `Signer #1 certificate SHA-256 digest: ${fingerprint.match(/../g).join(":")}\n`,
     `Signer (minSdkVersion=28, maxSdkVersion=2147483647) certificate SHA-256 digest: ${fingerprint}\n`,
     `Signer (minSdkVersion=33 (dev release=true), maxSdkVersion=2147483647) certificate SHA-256 digest: ${fingerprint}\n`,
   ])

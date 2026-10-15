@@ -102,7 +102,7 @@ export function verifyAndroidArtifact(badging, signing, appConfig, versionCode, 
   const expected = normalize(requireString(fingerprint, "approved signing certificate SHA-256"));
   const digests = [
     ...signing.matchAll(
-      /^Signer (?:#\d+|\(minSdkVersion=[^\r\n]+\)) certificate SHA-256 digest: ([a-fA-F0-9]{64})[ \t]*\r?$/gm,
+      /^Signer[^\r\n]* certificate SHA-256 digest: ([a-fA-F0-9:]{64,95})[ \t]*\r?$/gm,
     ),
   ];
   if (

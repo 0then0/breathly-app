@@ -62,7 +62,8 @@ jobs:
             git diff --exit-code "$EXPECTED_SHA" "$GITHUB_SHA" -- . \
               ':(exclude).github/workflows/release-android.yml' \
               ':(exclude)scripts/create-android-release.mjs' \
-              ':(exclude)scripts/create-android-release.test.mjs'
+              ':(exclude)scripts/create-android-release.test.mjs' \
+              ':(exclude)package.json'
           fi
 
       - name: Set up Node.js
@@ -87,6 +88,18 @@ jobs:
 
       - name: Validate release configuration before spending build credits
         run: |
+          if [ -n "$EXISTING_BUILD_ID" ]; then
+            node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          import { execFileSync } from 'node:child_process';
+          const previous = JSON.parse(execFileSync('git', ['show', `${process.env.EXPECTED_SHA}:package.json`], { encoding: 'utf8' }));
+          const current = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          delete previous.scripts['validate:expo'];
+          delete current.scripts['validate:expo'];
+          assert.deepStrictEqual(current, previous, 'Recovery cannot change dependencies, versions or build scripts');
+          JS
+          fi
           node scripts/create-android-release.mjs --preflight app.json eas.json "$RELEASE_TYPE"
           bun run validate:static
           bun run validate:expo
