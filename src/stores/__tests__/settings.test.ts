@@ -63,7 +63,12 @@ describe("settings persistence", () => {
 
   it("restores stored settings and keeps the store actions", async () => {
     mockGetItem.mockResolvedValue(
-      storedSettings({ theme: "dark", vibrationEnabled: false, preparationTime: 30_000 }),
+      storedSettings({
+        theme: "dark",
+        vibrationEnabled: false,
+        preparationTime: 30_000,
+        shouldKeepNavigationBarVisible: true,
+      }),
     );
 
     const useSettingsStore = await loadSettingsStore();
@@ -72,6 +77,7 @@ describe("settings persistence", () => {
     expect(useSettingsStore.getState().theme).toBe("dark");
     expect(useSettingsStore.getState().vibrationEnabled).toBe(false);
     expect(useSettingsStore.getState().preparationTime).toBe(30_000);
+    expect(useSettingsStore.getState().shouldKeepNavigationBarVisible).toBe(true);
     expect(typeof useSettingsStore.getState().setTheme).toBe("function");
   });
 

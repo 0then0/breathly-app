@@ -31,6 +31,7 @@ describe("settings state", () => {
       shouldFollowSystemDarkMode: false,
       theme: "dark" as const,
       vibrationEnabled: false,
+      shouldKeepNavigationBarVisible: true,
     };
 
     expect(normalizePersistedSettingsState(validSettings)).toEqual(validSettings);
@@ -47,6 +48,7 @@ describe("settings state", () => {
       shouldFollowSystemDarkMode: null,
       theme: "sepia",
       vibrationEnabled: 1,
+      shouldKeepNavigationBarVisible: "always",
     });
 
     expect(normalized).toEqual({

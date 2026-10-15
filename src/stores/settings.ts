@@ -34,6 +34,7 @@ interface SettingsStore extends PersistedSettingsState {
   setShouldFollowSystemDarkMode: (shouldFollowSystemDarkMode: boolean) => unknown;
   setTheme: (theme: Theme) => unknown;
   setVibrationEnabled: (vibrationEnabled: boolean) => unknown;
+  setShouldKeepNavigationBarVisible: (shouldKeepNavigationBarVisible: boolean) => unknown;
 }
 
 const readRetryDelayMs = 50;
@@ -121,6 +122,8 @@ export const useSettingsStore = create<SettingsStore>()(
           set({ shouldFollowSystemDarkMode }),
         setTheme: (theme) => set({ theme }),
         setVibrationEnabled: (vibrationEnabled) => set({ vibrationEnabled }),
+        setShouldKeepNavigationBarVisible: (shouldKeepNavigationBarVisible) =>
+          set({ shouldKeepNavigationBarVisible }),
       }),
       {
         name: "settings-storage",
