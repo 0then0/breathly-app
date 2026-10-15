@@ -1,9 +1,12 @@
 import {
+  adjustPreparationTime,
   adjustTimeLimit,
   customPatternDurationLimits,
   defaultSettingsState,
+  maximumPreparationTimeMs,
   maximumTimeLimitMs,
   mergePersistedSettingsState,
+  minimumPreparationTimeMs,
   normalizePersistedSettingsState,
   setCustomPatternStepValue,
 } from "../settings-state";
@@ -22,11 +25,14 @@ describe("settings state", () => {
       ...defaultSettingsState,
       customPatternEnabled: true,
       customPatternSteps: [1_500, 0, 8_000, 3_500] as [number, number, number, number],
+      preparationTime: 30_000,
       guidedBreathingVoice: "bell" as const,
+      healthConnectEnabled: true,
       timeLimit: 0,
       shouldFollowSystemDarkMode: false,
       theme: "dark" as const,
       vibrationEnabled: false,
+      shouldKeepNavigationBarVisible: true,
     };
 
     expect(normalizePersistedSettingsState(validSettings)).toEqual(validSettings);
@@ -37,11 +43,14 @@ describe("settings state", () => {
       customPatternEnabled: "yes",
       customPatternSteps: [-1, Number.NaN, 200_000, 3_000],
       selectedPatternPresetId: "missing-preset",
+      preparationTime: Number.POSITIVE_INFINITY,
       guidedBreathingVoice: "missing-voice",
+      healthConnectEnabled: "yes",
       timeLimit: Number.POSITIVE_INFINITY,
       shouldFollowSystemDarkMode: null,
       theme: "sepia",
       vibrationEnabled: 1,
+      shouldKeepNavigationBarVisible: "always",
     });
 
     expect(normalized).toEqual({
@@ -71,6 +80,27 @@ describe("settings state", () => {
   it("clamps every time-limit adjustment inside the supported range", () => {
     expect(adjustTimeLimit(0, -60_000)).toBe(0);
     expect(adjustTimeLimit(maximumTimeLimitMs, 60_000)).toBe(maximumTimeLimitMs);
+  });
+
+  it("clamps every preparation-time adjustment inside the supported range", () => {
+    expect(adjustPreparationTime(minimumPreparationTimeMs, -1_000)).toBe(minimumPreparationTimeMs);
+    expect(adjustPreparationTime(maximumPreparationTimeMs, 1_000)).toBe(maximumPreparationTimeMs);
+  });
+
+  it("rounds persisted preparation time to the displayed whole seconds", () => {
+    expect(normalizePersistedSettingsState({ preparationTime: 3_500 }).preparationTime).toBe(4_000);
+  });
+
+  it.each([
+    [null, defaultSettingsState.preparationTime],
+    ["30 seconds", defaultSettingsState.preparationTime],
+    [Number.NaN, defaultSettingsState.preparationTime],
+    [minimumPreparationTimeMs - 1, minimumPreparationTimeMs],
+    [maximumPreparationTimeMs + 1, maximumPreparationTimeMs],
+  ])("normalizes persisted preparation time %p", (preparationTime, expectedPreparationTime) => {
+    expect(normalizePersistedSettingsState({ preparationTime }).preparationTime).toBe(
+      expectedPreparationTime,
+    );
   });
 
   it("clamps custom steps and ignores invalid indexes", () => {

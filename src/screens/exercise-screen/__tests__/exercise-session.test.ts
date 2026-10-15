@@ -123,18 +123,25 @@ describe("exercise step transitions", () => {
     expect(getExerciseStepTransition("afterExhale", "inhale", false)).toBe("startStep");
   });
 
-  it("stops the exercise at the end of the exhale after the time limit", () => {
-    expect(getExerciseStepTransition("exhale", "afterExhale", true)).toBe("complete");
+  it("stops the exercise when the current cycle returns to the inhale", () => {
     expect(getExerciseStepTransition("exhale", "inhale", true)).toBe("complete");
-  });
-
-  it("stops the exercise at the end of the hold that follows the exhale", () => {
     expect(getExerciseStepTransition("afterExhale", "inhale", true)).toBe("complete");
   });
 
-  it("keeps breathing after the time limit until the lungs are empty", () => {
+  it("finishes a custom inhale-exhale pattern after its exhale", () => {
+    // A custom 12-0-12-0 pattern skips both holds, leaving inhale and exhale.
+    expect(getExerciseStepTransition("inhale", "exhale", true)).toBe("startStep");
+    expect(getExerciseStepTransition("exhale", "inhale", true)).toBe("complete");
+  });
+
+  it("does not complete before every active step of the current cycle", () => {
     expect(getExerciseStepTransition("inhale", "afterInhale", true)).toBe("startStep");
     expect(getExerciseStepTransition("inhale", "exhale", true)).toBe("startStep");
     expect(getExerciseStepTransition("afterInhale", "exhale", true)).toBe("startStep");
+    expect(getExerciseStepTransition("exhale", "afterExhale", true)).toBe("startStep");
+  });
+
+  it("does not complete on the first inhale", () => {
+    expect(getExerciseStepTransition(undefined, "inhale", true)).toBe("startStep");
   });
 });

@@ -50,10 +50,15 @@ export const Timer: FC<Props> = ({
     previousTickAtMs.current = currentTickAtMs;
     if (activeTickDeltaMs === 0) return;
 
+    const elapsedWasBeforeLimit = limit > 0 && elapsedTimeRef.current < limit;
     const nextElapsedTimeMs = limit
       ? Math.min(elapsedTimeRef.current + activeTickDeltaMs, limit)
       : elapsedTimeRef.current + activeTickDeltaMs;
     elapsedTimeRef.current = nextElapsedTimeMs;
+    if (elapsedWasBeforeLimit && nextElapsedTimeMs === limit && !limitReachedRef.current) {
+      limitReachedRef.current = true;
+      onLimitReached();
+    }
     setElapsedTimeMs(nextElapsedTimeMs);
     onActiveElapsedChange(nextElapsedTimeMs);
   }, timerRefreshIntervalMs);
@@ -61,11 +66,11 @@ export const Timer: FC<Props> = ({
   const remainingTimeMs = limit ? Math.max(0, limit - elapsedTimeMs) : undefined;
   const limitReached = remainingTimeMs === 0;
 
-  // The exercise continues until the end of the current exhale, thus the clock
+  // The exercise completes its current breathing-cycle iteration, thus the clock
   // stays at 00:00 for some seconds. The clock is complete and only the last
-  // breath remains: the timer crossfades to that message. It must not fade
-  // away, because a blank screen tells the user nothing about the time that the
-  // exercise still needs.
+  // breath remains: the timer crossfades to that message. It must not fade away,
+  // because a blank screen tells the user nothing about the time that the exercise
+  // still needs.
   useEffect(() => {
     if (!limitReached) {
       const showAnimation = animate(opacityAnimVal, {
@@ -99,6 +104,9 @@ export const Timer: FC<Props> = ({
     };
   }, [limitReached, opacityAnimVal]);
 
+  // A resumed session may already be at the limit when this timer mounts. The
+  // exercise screen arms completion before mounting the loop; this effect keeps
+  // the Timer callback contract intact for any other caller.
   useEffect(() => {
     if (limitReached && !limitReachedRef.current) {
       limitReachedRef.current = true;

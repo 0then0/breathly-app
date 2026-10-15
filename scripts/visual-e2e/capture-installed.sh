@@ -15,7 +15,11 @@ platform="$1"
 revision="$2"
 device_id="$3"
 run_id="${4:-local}"
-app_id="${VISUAL_APP_ID:-com.mmazzarolo.breathly}"
+default_app_id="com.mmazzarolo.breathly"
+if [[ "$platform" == "android" && "$revision" == "candidate" ]]; then
+  default_app_id="app.breathly.beta"
+fi
+app_id="${VISUAL_APP_ID:-$default_app_id}"
 
 if [[ "$platform" != "android" && "$platform" != "ios" ]]; then
   usage >&2
@@ -53,6 +57,7 @@ for theme in light dark; do
   if maestro test \
       --udid "$device_id" \
       --env "VISUAL_VARIANT=${theme}" \
+      --env "APP_ID=${app_id}" \
       --test-output-dir "$output_dir" \
       --format HTML-DETAILED \
       --output "${output_dir}-report.html" \

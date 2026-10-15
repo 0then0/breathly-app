@@ -47,6 +47,18 @@ Breathly is a tiny React-Native app that I developed in my free time to refine m
 
 I hope the source code will be useful to someone.
 
+## Android APK releases
+
+The **Release Android APK** workflow builds a signed APK and SHA-256 checksum from an explicitly
+approved `master` commit. Choose `prerelease` for an `-rc.N` version or `stable` for a stable version.
+It checks the EAS build commit and actual versionCode, verifies the APK package and signing
+certificate, and creates an `android-<version>-(<versionCode>)` tag on that exact commit.
+
+See [release preparation and approval requirements](releases/README.md) and the
+[2.3.0-rc.1 release notes](releases/2.3.0-rc.1.md). The Android beta uses the independent
+`app.breathly.beta` package and the approved `@0then0/breathly-beta` EAS project. Do not dispatch a cloud build before that decision,
+credential verification, successful validation and explicit build/publication approval.
+
 ## Resources and acknowledgements
 
 - I created the app icon using [SVGWave](https://svgwave.in/) and edited using [Affinity Photo](https://svgwave.in/).

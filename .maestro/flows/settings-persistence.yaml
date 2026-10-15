@@ -1,4 +1,4 @@
-appId: com.mmazzarolo.breathly
+appId: ${APP_ID}
 name: Customize and persist settings
 ---
 - clearState

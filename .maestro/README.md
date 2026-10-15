@@ -8,7 +8,7 @@ differences between platforms.
 
 - Maestro CLI available as `maestro`.
 - One booted Android emulator or iOS Simulator.
-- A release build installed with the application identifier `com.mmazzarolo.breathly`.
+- A release build installed with the application identifier `app.breathly.beta` on Android or `com.mmazzarolo.breathly` on iOS.
 
 Install Maestro using its official instructions. On Homebrew installations that require explicit
 third-party formula trust:
@@ -31,18 +31,18 @@ bun run e2e:build:ios
 bun run e2e:ios
 ```
 
-Use `bun run e2e` when exactly one compatible simulator or emulator is available. To run one flow
+Use `bun run e2e` for the Android beta package; `bun run e2e:ios` targets the unchanged iOS identifier. To run one flow
 while developing it, pass the path directly to Maestro, for example:
 
 ```sh
-maestro test .maestro/flows/settings-persistence.yaml
+maestro test -e APP_ID=app.breathly.beta .maestro/flows/settings-persistence.yaml
 ```
 
 Each top-level flow resets application data so it can run independently. The settings flow also
 kills and relaunches the app without clearing data to verify AsyncStorage persistence.
 
-The completion flow sets the shortest time limit and then waits for the exercise to end by itself.
-It runs for approximately 90 seconds, thus it is much slower than the other flows.
+The completion flow sets the shortest time limit and then waits for the current breathing cycle to
+end. It runs for approximately 90 seconds, thus it is much slower than the other flows.
 
 ## Cross-version visual comparison
 

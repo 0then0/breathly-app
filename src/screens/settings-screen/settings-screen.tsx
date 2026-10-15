@@ -14,10 +14,13 @@ import {
 import {
   customPatternDurationLimits,
   customPatternStepSizeMs,
+  maximumPreparationTimeMs,
   maximumTimeLimitMs,
+  minimumPreparationTimeMs,
   type Theme,
 } from "@breathly/stores/settings-state";
 import { GuidedBreathingMode } from "@breathly/types/guided-breathing-mode";
+import { useHealthConnectSetting } from "./use-health-connect-setting";
 
 export const SettingsRootScreen: FC<
   NativeStackScreenProps<SettingsStackParamList, "SettingsRoot">
@@ -29,6 +32,9 @@ export const SettingsRootScreen: FC<
   const timeLimit = useSettingsStore((state) => state.timeLimit);
   const increaseTimeLimit = useSettingsStore((state) => state.increaseTimeLimit);
   const decreaseTimeLimit = useSettingsStore((state) => state.decreaseTimeLimit);
+  const preparationTime = useSettingsStore((state) => state.preparationTime);
+  const increasePreparationTime = useSettingsStore((state) => state.increasePreparationTime);
+  const decreasePreparationTime = useSettingsStore((state) => state.decreasePreparationTime);
   const shouldFollowSystemDarkMode = useSettingsStore((state) => state.shouldFollowSystemDarkMode);
   const setShouldFollowSystemDarkMode = useSettingsStore(
     (state) => state.setShouldFollowSystemDarkMode,
@@ -38,6 +44,15 @@ export const SettingsRootScreen: FC<
   const setTheme = useSettingsStore((state) => state.setTheme);
   const vibrationEnabled = useSettingsStore((state) => state.vibrationEnabled);
   const setVibrationEnabled = useSettingsStore((state) => state.setVibrationEnabled);
+  const shouldKeepNavigationBarVisible = useSettingsStore(
+    (state) => state.shouldKeepNavigationBarVisible,
+  );
+  const setShouldKeepNavigationBarVisible = useSettingsStore(
+    (state) => state.setShouldKeepNavigationBarVisible,
+  );
+  const healthConnectEnabled = useSettingsStore((state) => state.healthConnectEnabled);
+  const setHealthConnectEnabled = useSettingsStore((state) => state.setHealthConnectEnabled);
+  const handleHealthConnectChange = useHealthConnectSetting(setHealthConnectEnabled);
 
   React.useEffect(() => {
     // Use `setOptions` to update the button that we previously specified
@@ -134,7 +149,45 @@ export const SettingsRootScreen: FC<
               testID="settings.vibration"
             />
           </SettingsUI.Section>
+          {Platform.OS === "android" && (
+            <SettingsUI.Section label="Navigation">
+              <SettingsUI.SwitchItem
+                label="Show navigation buttons"
+                secondaryLabel="Keep Android navigation buttons visible"
+                iconName="navigate"
+                iconBackgroundColor="#86efac"
+                value={shouldKeepNavigationBarVisible}
+                onValueChange={setShouldKeepNavigationBarVisible}
+                testID="settings.navigation-buttons"
+              />
+            </SettingsUI.Section>
+          )}
+          {Platform.OS === "android" && (
+            <SettingsUI.Section label="Health Connect">
+              <SettingsUI.SwitchItem
+                label="Save breathing sessions"
+                secondaryLabel="Record completed exercises as mindfulness"
+                iconName="heart"
+                iconBackgroundColor="#f87171"
+                value={healthConnectEnabled}
+                onValueChange={(enabled) => void handleHealthConnectChange(enabled)}
+                testID="settings.health-connect"
+              />
+            </SettingsUI.Section>
+          )}
           <SettingsUI.Section label="Timer" hideBottomBorderWeb>
+            <SettingsUI.StepperItem
+              label="Preparation time"
+              secondaryLabel="Time before the exercise starts, in seconds"
+              value={preparationTime / ms("1 sec")}
+              iconName="hourglass"
+              iconBackgroundColor="#fdba74"
+              onIncrease={increasePreparationTime}
+              onDecrease={decreasePreparationTime}
+              decreaseDisabled={preparationTime <= minimumPreparationTimeMs}
+              increaseDisabled={preparationTime >= maximumPreparationTimeMs}
+              testID="settings.preparation-time"
+            />
             <SettingsUI.StepperItem
               label="Exercise timer"
               secondaryLabel="Time limit in minutes"

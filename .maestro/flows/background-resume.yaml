@@ -1,4 +1,4 @@
-appId: com.mmazzarolo.breathly
+appId: ${APP_ID}
 name: Pause exercise while backgrounded
 ---
 - clearState

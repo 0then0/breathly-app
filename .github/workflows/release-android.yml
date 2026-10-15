@@ -1,0 +1,144 @@
+name: Release Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: Release channel (must match expo.version)
+        type: choice
+        required: true
+        default: prerelease
+        options:
+          - prerelease
+          - stable
+      expected_sha:
+        description: Full master commit SHA approved for this build and publication
+        type: string
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-android
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    environment: release
+    env:
+      RELEASE_TYPE: ${{ inputs.release_type }}
+      EXPECTED_SHA: ${{ inputs.expected_sha }}
+      EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
+      EAS_OWNER: ${{ vars.EAS_OWNER }}
+      ANDROID_PACKAGE: ${{ vars.ANDROID_PACKAGE }}
+      ANDROID_SIGNING_CERT_SHA256: ${{ vars.ANDROID_SIGNING_CERT_SHA256 }}
+
+    steps:
+      - name: Check out release source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify trusted release source
+        run: |
+          test "$GITHUB_REPOSITORY" = "0then0/breathly-app"
+          test "$GITHUB_REF" = "refs/heads/master"
+          test "$GITHUB_SHA" = "$EXPECTED_SHA"
+          git fetch origin master --quiet
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/master
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+
+      - name: Set up Expo and EAS
+        uses: expo/expo-github-action@c7b66a9c327a43a8fa7c0158e7f30d6040d2481e # v8.2.1
+        with:
+          eas-version: 21.4.0
+          token: ${{ secrets.EXPO_TOKEN }}
+          packager: bun
+
+      - name: Install locked dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Validate release configuration before spending build credits
+        run: |
+          node scripts/create-android-release.mjs --preflight app.json eas.json "$RELEASE_TYPE"
+          bun run validate:static
+          bun run validate:expo
+          bun run validate:bundles
+          test -z "$(git status --porcelain)"
+          eas project:info > "$RUNNER_TEMP/eas-project.txt"
+          eas build:version:get --platform android --profile preview --non-interactive --json > "$RUNNER_TEMP/eas-version.json"
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          const project = fs.readFileSync(`${process.env.RUNNER_TEMP}/eas-project.txt`, 'utf8').replace(/\u001b\[[0-9;]*m/g, '');
+          const owner = project.match(/fullName\s+@([^/\s]+)\//)?.[1];
+          if (owner !== process.env.EAS_OWNER) throw new Error('EAS project owner does not match');
+          const remote = JSON.parse(fs.readFileSync(`${process.env.RUNNER_TEMP}/eas-version.json`, 'utf8'));
+          const app = JSON.parse(fs.readFileSync('app.json', 'utf8'));
+          if (!/^[1-9][0-9]*$/.test(String(remote.versionCode)) || Number(remote.versionCode) < app.expo.android.versionCode) {
+            throw new Error('Initialize the approved EAS remote counter before building');
+          }
+          JS
+
+      - name: Build signed Android APK
+        id: build
+        run: |
+          eas build --platform android --profile preview --freeze-credentials --non-interactive --wait --json > "$RUNNER_TEMP/eas-build.json"
+          node scripts/create-android-release.mjs "$RUNNER_TEMP/eas-build.json" app.json eas.json "$RELEASE_TYPE" "$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          const [build] = JSON.parse(fs.readFileSync(`${process.env.RUNNER_TEMP}/eas-build.json`, 'utf8'));
+          if (build.project?.ownerAccount?.name !== process.env.EAS_OWNER) {
+            throw new Error('EAS project owner does not match the approved release environment');
+          }
+          JS
+
+      - name: Download APK and checksum
+        id: artifact
+        env:
+          APK_URL: ${{ steps.build.outputs.apk_url }}
+        run: |
+          apk="Breathly.apk"
+          curl --fail --location --retry 3 --retry-all-errors "$APK_URL" --output "$apk"
+          sha256sum "$apk" > "${apk}.sha256"
+          echo "apk=$apk" >> "$GITHUB_OUTPUT"
+          echo "checksum=${apk}.sha256" >> "$GITHUB_OUTPUT"
+
+      - name: Verify APK identity, version and signing certificate
+        env:
+          VERSION_CODE: ${{ steps.build.outputs.version_code }}
+        run: |
+          build_tools=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
+          "$build_tools/aapt" dump badging Breathly.apk > "$RUNNER_TEMP/apk-badging.txt"
+          "$build_tools/apksigner" verify --verbose --print-certs Breathly.apk > "$RUNNER_TEMP/apk-signing.txt"
+          node scripts/create-android-release.mjs --verify-apk "$RUNNER_TEMP/apk-badging.txt" "$RUNNER_TEMP/apk-signing.txt" app.json "$VERSION_CODE"
+
+      - name: Create release tag
+        env:
+          RELEASE_TAG: ${{ steps.build.outputs.release_tag }}
+        run: |
+          git tag "$RELEASE_TAG" "$GITHUB_SHA"
+          git push origin "refs/tags/$RELEASE_TAG"
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
+        with:
+          tag_name: ${{ steps.build.outputs.release_tag }}
+          name: ${{ steps.build.outputs.release_name }}
+          prerelease: ${{ steps.build.outputs.prerelease == 'true' }}
+          body_path: releases/${{ steps.build.outputs.release_version }}.md
+          fail_on_unmatched_files: true
+          files: |
+            ${{ steps.artifact.outputs.apk }}
+            ${{ steps.artifact.outputs.checksum }}
