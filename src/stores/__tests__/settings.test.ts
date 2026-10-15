@@ -66,6 +66,7 @@ describe("settings persistence", () => {
       storedSettings({
         theme: "dark",
         vibrationEnabled: false,
+        healthConnectEnabled: true,
         preparationTime: 30_000,
         shouldKeepNavigationBarVisible: true,
       }),
@@ -78,7 +79,9 @@ describe("settings persistence", () => {
     expect(useSettingsStore.getState().vibrationEnabled).toBe(false);
     expect(useSettingsStore.getState().preparationTime).toBe(30_000);
     expect(useSettingsStore.getState().shouldKeepNavigationBarVisible).toBe(true);
+    expect(useSettingsStore.getState().healthConnectEnabled).toBe(true);
     expect(typeof useSettingsStore.getState().setTheme).toBe("function");
+    expect(typeof useSettingsStore.getState().setHealthConnectEnabled).toBe("function");
   });
 
   it("adjusts the preparation time through the store actions", async () => {

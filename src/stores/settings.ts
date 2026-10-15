@@ -29,6 +29,7 @@ interface SettingsStore extends PersistedSettingsState {
   setGuidedBreathingVoice: (guidedBreathingVoice: GuidedBreathingMode) => unknown;
   increasePreparationTime: () => unknown;
   decreasePreparationTime: () => unknown;
+  setHealthConnectEnabled: (healthConnectEnabled: boolean) => unknown;
   increaseTimeLimit: () => unknown;
   decreaseTimeLimit: () => unknown;
   setShouldFollowSystemDarkMode: (shouldFollowSystemDarkMode: boolean) => unknown;
@@ -114,6 +115,7 @@ export const useSettingsStore = create<SettingsStore>()(
           set({
             preparationTime: adjustPreparationTime(get().preparationTime, -preparationTimeStepMs),
           }),
+        setHealthConnectEnabled: (healthConnectEnabled) => set({ healthConnectEnabled }),
         increaseTimeLimit: () =>
           set({ timeLimit: adjustTimeLimit(get().timeLimit, timeLimitStepMs) }),
         decreaseTimeLimit: () =>
