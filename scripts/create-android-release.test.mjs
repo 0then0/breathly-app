@@ -180,3 +180,31 @@ test("rejects a different certificate on any supported Android version", () => {
     /certificate/,
   );
 });
+
+test("reads the versioned signer label emitted by current Android build-tools", () => {
+  // Actual release-run format. Public-key digests must not be mistaken for certificates.
+  const output = `Verifies\nVerified using v2 scheme (APK Signature Scheme v2): true\nNumber of signers: 1\nV2 Signer: certificate DN: CN=, OU=, O=, L=, ST=, C=US\nV2 Signer: certificate SHA-256 digest: ${fingerprint}\nV2 Signer: public key SHA-256 digest: ${"b".repeat(64)}\n`;
+  verifyAndroidArtifact(badging, output, appConfig, "2", fingerprint);
+  verifyAndroidArtifact(
+    badging,
+    output.replaceAll("V2 Signer:", "V3.2 Signer:"),
+    appConfig,
+    "2",
+    fingerprint,
+  );
+  assert.throws(
+    () =>
+      verifyAndroidArtifact(
+        badging,
+        signing +
+          output.replace(
+            `certificate SHA-256 digest: ${fingerprint}`,
+            `certificate SHA-256 digest: ${"b".repeat(64)}`,
+          ),
+        appConfig,
+        "2",
+        fingerprint,
+      ),
+    /certificate/,
+  );
+});
