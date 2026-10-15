@@ -15,6 +15,10 @@ on:
         description: Full master commit SHA approved for this build and publication
         type: string
         required: true
+      existing_build_id:
+        description: Optional finished EAS build ID to resume publication without rebuilding
+        type: string
+        required: false
 
 permissions:
   contents: write
@@ -31,6 +35,7 @@ jobs:
     env:
       RELEASE_TYPE: ${{ inputs.release_type }}
       EXPECTED_SHA: ${{ inputs.expected_sha }}
+      EXISTING_BUILD_ID: ${{ inputs.existing_build_id }}
       EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
       EAS_OWNER: ${{ vars.EAS_OWNER }}
       ANDROID_PACKAGE: ${{ vars.ANDROID_PACKAGE }}
@@ -46,9 +51,19 @@ jobs:
         run: |
           test "$GITHUB_REPOSITORY" = "0then0/breathly-app"
           test "$GITHUB_REF" = "refs/heads/master"
-          test "$GITHUB_SHA" = "$EXPECTED_SHA"
+          [[ "$EXPECTED_SHA" =~ ^[a-f0-9]{40}$ ]]
           git fetch origin master --quiet
-          git merge-base --is-ancestor "$GITHUB_SHA" origin/master
+          git cat-file -e "$EXPECTED_SHA^{commit}"
+          git merge-base --is-ancestor "$EXPECTED_SHA" origin/master
+          if [ -z "$EXISTING_BUILD_ID" ]; then
+            test "$GITHUB_SHA" = "$EXPECTED_SHA"
+          else
+            # Recovery may change only publication tooling; the APK source must stay identical.
+            git diff --exit-code "$EXPECTED_SHA" "$GITHUB_SHA" -- . \
+              ':(exclude).github/workflows/release-android.yml' \
+              ':(exclude)scripts/create-android-release.mjs' \
+              ':(exclude)scripts/create-android-release.test.mjs'
+          fi
 
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -94,8 +109,17 @@ jobs:
       - name: Build signed Android APK
         id: build
         run: |
-          eas build --platform android --profile preview --freeze-credentials --non-interactive --wait --json > "$RUNNER_TEMP/eas-build.json"
-          node scripts/create-android-release.mjs "$RUNNER_TEMP/eas-build.json" app.json eas.json "$RELEASE_TYPE" "$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          if [ -n "$EXISTING_BUILD_ID" ]; then
+            eas build:view "$EXISTING_BUILD_ID" --json > "$RUNNER_TEMP/existing-build.json"
+            node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          const build = JSON.parse(fs.readFileSync(`${process.env.RUNNER_TEMP}/existing-build.json`, 'utf8'));
+          fs.writeFileSync(`${process.env.RUNNER_TEMP}/eas-build.json`, JSON.stringify([build]));
+          JS
+          else
+            eas build --platform android --profile preview --freeze-credentials --non-interactive --wait --json > "$RUNNER_TEMP/eas-build.json"
+          fi
+          node scripts/create-android-release.mjs "$RUNNER_TEMP/eas-build.json" app.json eas.json "$RELEASE_TYPE" "$EXPECTED_SHA" >> "$GITHUB_OUTPUT"
           node --input-type=module <<'JS'
           import fs from 'node:fs';
           const [build] = JSON.parse(fs.readFileSync(`${process.env.RUNNER_TEMP}/eas-build.json`, 'utf8'));
@@ -122,13 +146,14 @@ jobs:
           build_tools=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
           "$build_tools/aapt" dump badging Breathly.apk > "$RUNNER_TEMP/apk-badging.txt"
           "$build_tools/apksigner" verify --verbose --print-certs Breathly.apk > "$RUNNER_TEMP/apk-signing.txt"
+          cat "$RUNNER_TEMP/apk-signing.txt"
           node scripts/create-android-release.mjs --verify-apk "$RUNNER_TEMP/apk-badging.txt" "$RUNNER_TEMP/apk-signing.txt" app.json "$VERSION_CODE"
 
       - name: Create release tag
         env:
           RELEASE_TAG: ${{ steps.build.outputs.release_tag }}
         run: |
-          git tag "$RELEASE_TAG" "$GITHUB_SHA"
+          git tag "$RELEASE_TAG" "$EXPECTED_SHA"
           git push origin "refs/tags/$RELEASE_TAG"
 
       - name: Publish GitHub release
